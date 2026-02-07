@@ -16,13 +16,24 @@ local function init()
 end
 tfb.events:Register("PLAYER_LOGIN", "init", init)
 
+local function addTimeMessage(charKey)
+  local expansionTime = tfb.db:GetCharPlaytimeCurrentExpansion(charKey)
+  local totalTime = tfb.db:GetTotalPlaytime()
+  local currentExpansion = tfb.gameVersion:GetCurrentExpansionName()
+
+  tfb.chat:AddMessage("Total time played in " .. currentExpansion .. ": " .. tfb.chat:FormatPlaytime(expansionTime))
+  tfb.chat:AddMessage("Total time played over all charaters: " .. tfb.chat:FormatPlaytime(totalTime))
+end
+
 local function writeTime(...)
-  initialTimeChecked = true
-  local totalTimePlayed, timePlayedThisLevel = ...
+  local totalTimePlayed = ...
   local versionString = tfb.gameVersion:GetCurrentGameVersionString()
   local charKey = tfb.character:GetCharKey()
 
   tfb.db:WriteTime(charKey, versionString, totalTimePlayed)
+  addTimeMessage(charKey)
+
+  initialTimeChecked = true
 end
 tfb.events:Register("TIME_PLAYED_MSG", "writeTime", writeTime)
 
