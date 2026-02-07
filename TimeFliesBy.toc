@@ -9,5 +9,6 @@ utils\character.lua
 utils\gameVersion.lua
 utils\events.lua
 utils\db.lua
+utils\chat.lua
 
 TimeFliesBy.lua
