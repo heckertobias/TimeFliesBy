@@ -38,3 +38,39 @@ function tfb.db:WriteTime(charKey, versionString, playedTime)
     initNewVersion(charKey, versionString, playedTime)
   end
 end
+
+function tfb.db:GetTotalPlaytime()
+  local total = 0
+
+  for _, charData in pairs(TimeFliesByDB["data"]) do
+    local currentVersion = charData.currentVersionString
+    local expansionData = charData.expansions[currentVersion]
+    if expansionData then
+      total = total + expansionData.lastUpdate
+    end
+  end
+
+  return total
+end
+
+function tfb.db:GetCharPlaytimeCurrentExpansion(charKey)
+  if not TimeFliesByDB["data"][charKey] then
+    return 0
+  end
+
+  local charData = TimeFliesByDB["data"][charKey]
+  local currentVersion = charData.currentVersionString
+  local currentExpansion = tfb.gameVersion:GetExpansionNameByVersion(currentVersion)
+
+  local total = 0
+
+  -- Sum playtime for all versions that belong to the same expansion
+  for versionString, expansionData in pairs(charData.expansions) do
+    local expansion = tfb.gameVersion:GetExpansionNameByVersion(versionString)
+    if expansion == currentExpansion then
+      total = total + (expansionData.lastUpdate - expansionData.createdAt)
+    end
+  end
+
+  return total
+end
