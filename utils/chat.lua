@@ -5,12 +5,12 @@ tfb.chat = {}
 local DEFAULT_COLOR = { 1.0, 0.82, 0.0 }
 
 function tfb.chat:AddMessage(message, r, g, b)
-  local rr = r or DEFAULT_COLOR[1]
-  local gg = g or DEFAULT_COLOR[2]
-  local bb = b or DEFAULT_COLOR[3]
+  -- local rr = r or DEFAULT_COLOR[1]
+  -- local gg = g or DEFAULT_COLOR[2]
+  -- local bb = b or DEFAULT_COLOR[3]
 
   if DEFAULT_CHAT_FRAME and DEFAULT_CHAT_FRAME.AddMessage then
-    DEFAULT_CHAT_FRAME:AddMessage(message, rr, gg, bb)
+    DEFAULT_CHAT_FRAME:AddMessage(message, r or 1, g or 1, b or 0)
   end
 end
 

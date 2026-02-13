@@ -4,6 +4,8 @@ tfb.db = {}
 
 TimeFliesByDB = TimeFliesByDB or {}
 
+local lastDbWrite
+
 local function initNewVersion(charKey, versionString, playedTime)
   TimeFliesByDB["data"][charKey].currentVersionString = versionString
   TimeFliesByDB["data"][charKey].expansions[versionString] = {
@@ -37,6 +39,24 @@ function tfb.db:WriteTime(charKey, versionString, playedTime)
   if versionString ~= lastVersion then
     initNewVersion(charKey, versionString, playedTime)
   end
+  lastDbWrite = time()
+end
+
+function tfb.db:GetCurrentPlayed(charKey)
+  if not TimeFliesByDB["data"][charKey] then
+    return 0
+  end
+
+  local timeSinceWrite
+  if not lastDbWrite then
+    timeSinceWrite = 0
+  else
+    timeSinceWrite = time() - lastDbWrite
+  end
+  local currentVersion = TimeFliesByDB["data"][charKey].currentVersionString
+  local expansionData = TimeFliesByDB["data"][charKey].expansions[currentVersion]
+
+  return expansionData.lastUpdate + timeSinceWrite
 end
 
 function tfb.db:GetTotalPlaytime()

@@ -14,7 +14,7 @@ local expansionGameVersionMap = {
   { version = "9.0.1",  name = "Shadowlands" },
   { version = "10.0.2", name = "Dragonflight" },
   { version = "11.0.2", name = "The War Within" },
-  { version = "12.0.1", name = "Midnight" }
+  { version = "12.0.2", name = "Midnight" }
 }
 
 local function parseGameVersion(versionString)
