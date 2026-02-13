@@ -1,4 +1,4 @@
-## Interface: 120000
+## Interface: 120001
 ## Title: TimeFliesBy
 ## Notes: Track your time played over alts and expansions.
 ## Author: Zyx <heckertobias@googlemail.com>
@@ -6,9 +6,11 @@
 ## SavedVariables: TimeFliesByDB
 
 utils\character.lua
+utils\colors.lua
 utils\gameVersion.lua
 utils\events.lua
 utils\db.lua
 utils\chat.lua
 
+WunderBar.lua
 TimeFliesBy.lua
