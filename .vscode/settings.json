@@ -24,5 +24,6 @@
     "PLAYER_LEVEL_UP",
     "class",
     "RAID_CLASS_COLORS"
-  ]
+  ],
+  "editor.wordWrap": "off"
 }

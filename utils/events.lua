@@ -38,3 +38,19 @@ function tfb.events:Register(event, name, callback)
     reg[event][index][2] = callback
   end
 end
+
+function tfb.events:Unregister(event, name)
+  if not reg[event] then
+    return
+  end
+
+  local index = getEventId(name, event)
+  if index then
+    tremove(reg[event], index)
+
+    if #reg[event] == 0 then
+      reg[event] = nil
+      events:UnregisterEvent(event)
+    end
+  end
+end
