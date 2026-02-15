@@ -3,6 +3,18 @@ local _, tfb = ...
 local initialTimeChecked = false
 local WunderBar = tfb.WunderBar
 
+local function updateMaxLvlBar()
+  local currentTime = tfb.db:GetCurrentPlayed(tfb.character:GetCharKey())
+  WunderBar:SetValues(86400, currentTime % 86400)
+  WunderBar:SetText(tfb.chat:FormatPlaytime(currentTime))
+end
+
+local function initMaxLvlBar()
+  WunderBar:SetBar1Color(tfb.colors:GetClassColor(tfb.character:GetClassToken()))
+  updateMaxLvlBar()
+  C_Timer.NewTicker(5, updateMaxLvlBar)
+end
+
 local sessionStart, sessionStartExp
 local function getExpPerHour(exp)
   if not sessionStartExp or sessionStartExp > exp then
@@ -19,7 +31,24 @@ local function getExpPerHour(exp)
   end
 end
 
+local function checkPlayerReachedMaxLvl()
+  if tfb.character:IsMaxLevel() then
+    tfb.events:Unregister("PLAYER_XP_UPDATE", "updateXP")
+    tfb.events:Unregister("PLAYER_LEVEL_UP", "updateXP")
+    tfb.events:Unregister("UPDATE_EXHAUSTION", "updateXP")
+
+    initMaxLvlBar()
+    return true
+  end
+
+  return false
+end
+
 local function updateXP()
+  if checkPlayerReachedMaxLvl() then
+    return
+  end
+
   local xp = UnitXP("player")
   local max = UnitXPMax("player")
   local rested = GetXPExhaustion() or 0
@@ -46,18 +75,6 @@ local function updateXP()
   WunderBar:SetText(string.format("%d / %d (%d%%)%s", xp, max, perc, restedText), timeTilNextLvlStr)
 end
 
-local function updateMaxLvlBar()
-  local currentTime = tfb.db:GetCurrentPlayed(tfb.character:GetCharKey())
-  WunderBar:SetValues(86400, currentTime % 86400)
-  WunderBar:SetText(tfb.chat:FormatPlaytime(currentTime))
-end
-
-local function initMaxLvlBar()
-  WunderBar:SetBar1Color(tfb.colors:GetClassColor(tfb.character:GetClassToken()))
-  updateMaxLvlBar()
-  C_Timer.NewTicker(5, updateMaxLvlBar)
-end
-
 local function initExpBar()
   WunderBar:SetBar1Color(tfb.colors:GetExpColor())
   WunderBar:SetBar2Color(tfb.colors:GetRestedExpColor())
@@ -68,23 +85,11 @@ local function initExpBar()
   tfb.events:Register("UPDATE_EXHAUSTION", "updateXP", updateXP)
 end
 
-local function checkPlayerReachedMaxLvl()
-  if tfb.character:IsMaxLevel() then
-    tfb.events:Unregister("PLAYER_XP_UPDATE", "updateXP")
-    tfb.events:Unregister("PLAYER_LEVEL_UP", "updateXP")
-    tfb.events:Unregister("UPDATE_EXHAUSTION", "updateXP")
-    tfb.events:Unregister("PLAYER_LEVEL_UP", "checkPlayerReachedMaxLvl")
-
-    initMaxLvlBar()
-  end
-end
-
 local function initWunderBar()
   if tfb.character:IsMaxLevel() then
     initMaxLvlBar()
   else
     initExpBar()
-    tfb.events:Register("PLAYER_LEVEL_UP", "checkPlayerReachedMaxLvl", checkPlayerReachedMaxLvl)
   end
 end
 
