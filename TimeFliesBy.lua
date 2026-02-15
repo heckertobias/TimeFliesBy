@@ -111,11 +111,11 @@ local function addTimeMessage(charKey)
 end
 
 local function writeTime(...)
-  local totalTimePlayed = ...
+  local totalTimePlayed, timePlayedAtLevel = ...
   local versionString = tfb.gameVersion:GetCurrentGameVersionString()
   local charKey = tfb.character:GetCharKey()
 
-  tfb.db:WriteTime(charKey, versionString, totalTimePlayed)
+  tfb.db:WriteTime(charKey, versionString, totalTimePlayed, timePlayedAtLevel)
   C_Timer.After(0.1, function()
     addTimeMessage(charKey)
   end)

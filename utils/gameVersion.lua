@@ -74,3 +74,16 @@ function tfb.gameVersion:GetCurrentExpansionName()
   local versionString = tfb.gameVersion:GetCurrentGameVersionString()
   return tfb.gameVersion:GetExpansionNameByVersion(versionString)
 end
+
+function tfb.gameVersion:GetMinimalVersionStringForCurrentExpansion()
+  local versionString = tfb.gameVersion:GetCurrentGameVersionString()
+  local expansionName = tfb.gameVersion:GetExpansionNameByVersion(versionString)
+
+  for i = 1, #expansionGameVersionMap do
+    if expansionGameVersionMap[i].name == expansionName then
+      return expansionGameVersionMap[i].version
+    end
+  end
+
+  return nil
+end

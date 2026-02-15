@@ -14,18 +14,23 @@ local function initNewVersion(charKey, versionString, playedTime)
   }
 end
 
-local function initCharKey(charKey, versionString, playedTime)
+local function initCharKey(charKey, versionString, playedTime, timePlayedAtLevel)
+  local minExpansionVersionString = tfb.gameVersion:GetMinimalVersionStringForCurrentExpansion()
   TimeFliesByDB["data"][charKey] = {
-    initialPlayedTime = playedTime,
+    initialPlayedTime = playedTime - timePlayedAtLevel,
     currentVersionString = versionString,
     expansions = {}
+  }
+  TimeFliesByDB["data"][charKey].expansions[minExpansionVersionString] = {
+    createdAt = playedTime - timePlayedAtLevel,
+    lastUpdate = playedTime
   }
   initNewVersion(charKey, versionString, playedTime)
 end
 
-function tfb.db:WriteTime(charKey, versionString, playedTime)
+function tfb.db:WriteTime(charKey, versionString, playedTime, timePlayedAtLevel)
   if not TimeFliesByDB["data"][charKey] then
-    initCharKey(charKey, versionString, playedTime)
+    initCharKey(charKey, versionString, playedTime, timePlayedAtLevel)
     return
   end
 
