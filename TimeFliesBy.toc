@@ -3,6 +3,7 @@
 ## Notes: Track your time played over alts and expansions.
 ## Author: Zyx <heckertobias@googlemail.com>
 ## Version: 0.1.0
+## IconTexture: Interface\AddOns\TimeFliesBy\media\icon
 ## SavedVariables: TimeFliesByDB
 
 utils\character.lua
