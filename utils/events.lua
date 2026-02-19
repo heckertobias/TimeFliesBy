@@ -9,7 +9,7 @@ local function runCallbacks(self, event, ...)
   if reg[event] then
     for _, data in ipairs(reg[event]) do
       if type(data[2]) == "function" then
-        data[2](...)
+        data[2](event, ...)
       end
     end
   end

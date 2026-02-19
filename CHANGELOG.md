@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.0] - 2026-02-19
+- add reputation tracking and notifications
+- fix some bugs
+- it's possible to set an y-offset for the bar with /tfb offset {number} (need to /reload to take affact). I added this a a temporary fix for a user with a macbook and ui shifted below the nodge. This will be removed again in a later version.
+
 ## [0.1.3] - 2026-02-15
 - fix problem with switching bar from exp to played when reaching max level
 

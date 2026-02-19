@@ -4,7 +4,7 @@ tfb.WunderBar = {}
 
 local bar = CreateFrame("StatusBar", "WunderBar", UIParent)
 bar:SetStatusBarTexture("Interface\\Buttons\\WHITE8X8")
-bar:SetPoint("TOP", UIParent, "TOP", 0, 0)
+bar:SetPoint("TOP", UIParent, "TOP", 0, tfb.db:GetYOffset() or 0)
 bar:SetStatusBarColor(1, 1, 1)
 bar:Hide()
 
@@ -20,12 +20,12 @@ bg:SetAllPoints(bar)
 bg:SetColorTexture(0, 0, 0, 0.5)
 
 local text1 = bar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-text1:SetPoint("TOP", bar, "BOTTOM", 0, -2);
+text1:SetPoint("TOP", bar, "BOTTOM", 0, -2 - (tfb.db:GetYOffset() or 0))
 text1:SetTextColor(1, 1, 1)
 text1:SetTextHeight(12)
 
 local text2 = bar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-text2:SetPoint("TOP", bar, "BOTTOM", 0, -16)
+text2:SetPoint("TOP", bar, "BOTTOM", 0, -16 - (tfb.db:GetYOffset() or 0))
 text2:SetTextColor(1, 1, 1)
 text2:SetTextHeight(12)
 text2:Hide()
@@ -81,5 +81,11 @@ bar:SetScript("OnEvent", function(self, event, ...)
   if event == "PLAYER_LOGIN" then
     bar:SetSize(GetScreenWidth(), 5)
     HideBlizzStatusBar()
+
+    if tfb.db:GetYOffset() then
+      bar:SetPoint("TOP", UIParent, "TOP", 0, tfb.db:GetYOffset() or 0)
+      text1:SetPoint("TOP", bar, "BOTTOM", 0, -2 - (tfb.db:GetYOffset() or 0))
+      text2:SetPoint("TOP", bar, "BOTTOM", 0, -16 - (tfb.db:GetYOffset() or 0))
+    end
   end
 end)

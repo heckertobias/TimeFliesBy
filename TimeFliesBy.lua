@@ -3,16 +3,32 @@ local _, tfb = ...
 local initialTimeChecked = false
 local WunderBar = tfb.WunderBar
 
-local function updateMaxLvlBar()
-  local currentTime = tfb.db:GetCurrentPlayed(tfb.character:GetCharKey())
-  WunderBar:SetValues(86400, currentTime % 86400)
-  WunderBar:SetText(tfb.chat:FormatPlaytime(currentTime))
+local alternativeWatch = 0
+local function updateMaxLvlBar(event)
+  if event == "UPDATE_FACTION" then
+    local faction = tfb.reputation:GetReputationChange()
+    if faction ~= nil then
+      WunderBar:SetBar1Color(faction.GetColor())
+      WunderBar:SetValues(faction.max, faction.current)
+      local perc = floor((faction.current / faction.max) * 100)
+      WunderBar:SetText(string.format("%s - %d / %d (%d%%)", faction.name, faction.current, faction.max, perc), faction.standing)
+      alternativeWatch = time() + 30
+    end
+  end
+
+  if (alternativeWatch < time()) then
+    local currentTime = tfb.db:GetCurrentPlayed(tfb.character:GetCharKey())
+    WunderBar:SetBar1Color(tfb.colors:GetClassColor(tfb.character:GetClassToken()))
+    WunderBar:SetValues(86400, currentTime % 86400)
+    WunderBar:SetText(tfb.chat:FormatPlaytime(currentTime))
+  end
 end
 
 local function initMaxLvlBar()
-  WunderBar:SetBar1Color(tfb.colors:GetClassColor(tfb.character:GetClassToken()))
   updateMaxLvlBar()
   C_Timer.NewTicker(5, updateMaxLvlBar)
+  tfb.reputation:GetReputationChange() -- init
+  tfb.events:Register("UPDATE_FACTION", "maxLvlBar", updateMaxLvlBar)
 end
 
 local sessionStart, sessionStartExp
@@ -115,7 +131,7 @@ local function addTimeMessage(charKey)
   tfb.chat:AddMessage("Time played on all charaters: " .. tfb.chat:FormatPlaytime(totalTime))
 end
 
-local function writeTime(...)
+local function writeTime(_, ...)
   local totalTimePlayed, timePlayedAtLevel = ...
   local versionString = tfb.gameVersion:GetCurrentGameVersionString()
   local charKey = tfb.character:GetCharKey()
@@ -128,3 +144,19 @@ local function writeTime(...)
   initialTimeChecked = true
 end
 tfb.events:Register("TIME_PLAYED_MSG", "writeTime", writeTime)
+
+SLASH_TFB1 = "/tfb"
+SlashCmdList["TFB"] = function(msg)
+  local command, value = msg:match("^(%S+)%s*(.-)%s*$")
+  if command == "offset" then
+    local offset = tonumber(value)
+    if offset then
+      tfb.db:SetYOffset(offset)
+      tfb.chat:AddMessage("Y-Offset set to " .. offset)
+    else
+      tfb.chat:AddMessage("Usage: /tfb offset [number]")
+    end
+  else
+    tfb.chat:AddMessage("Usage: /tfb offset [number]")
+  end
+end

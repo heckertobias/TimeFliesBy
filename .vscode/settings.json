@@ -23,7 +23,9 @@
     "IsPlayerAtEffectiveMaxLevel",
     "PLAYER_LEVEL_UP",
     "class",
-    "RAID_CLASS_COLORS"
+    "RAID_CLASS_COLORS",
+    "FACTION_BAR_COLORS",
+    "WorldFrame"
   ],
   "editor.wordWrap": "off"
 }

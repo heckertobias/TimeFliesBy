@@ -15,6 +15,10 @@ local function initNewVersion(charKey, versionString, playedTime)
 end
 
 local function initCharKey(charKey, versionString, playedTime, timePlayedAtLevel)
+  if not TimeFliesByDB["data"] then
+    TimeFliesByDB["data"] = {}
+  end
+
   local minExpansionVersionString = tfb.gameVersion:GetMinimalVersionStringForCurrentExpansion()
   TimeFliesByDB["data"][charKey] = {
     initialPlayedTime = playedTime - timePlayedAtLevel,
@@ -29,7 +33,7 @@ local function initCharKey(charKey, versionString, playedTime, timePlayedAtLevel
 end
 
 function tfb.db:WriteTime(charKey, versionString, playedTime, timePlayedAtLevel)
-  if not TimeFliesByDB["data"][charKey] then
+  if not TimeFliesByDB["data"] or not TimeFliesByDB["data"][charKey] then
     initCharKey(charKey, versionString, playedTime, timePlayedAtLevel)
     return
   end
@@ -98,4 +102,12 @@ function tfb.db:GetCharPlaytimeCurrentExpansion(charKey)
   end
 
   return total
+end
+
+function tfb.db:SetYOffset(offset)
+  TimeFliesByDB["yOffset"] = offset
+end
+
+function tfb.db:GetYOffset()
+  return TimeFliesByDB["yOffset"]
 end
