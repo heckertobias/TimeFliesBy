@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.3.0] - 2026-02-20
+- add profession skill-up tracking with bar display
+- show profession name, current/max skill and progress on skill-up
+- support expansion-specific skill tiers for all professions (including fishing, cooking and archaeology)
+
 ## [0.2.0] - 2026-02-19
 - add reputation tracking and notifications
 - fix some bugs

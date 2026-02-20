@@ -30,3 +30,7 @@ end
 function tfb.colors:GetRestedExpColor()
   return 0.0, 0.39, 0.88 --, 0.6
 end
+
+function tfb.colors:GetProfessionColor()
+  return 0.89, 0.59, 0.15
+end

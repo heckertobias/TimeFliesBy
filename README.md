@@ -18,3 +18,9 @@ See an estimated or tracked time remaining until you hit your next level, helpin
 
 **🏆 Time to Next Full Day Played** *(for max-level characters)*
 Already at max level? Track your progress toward the next full 24-hour played milestone — because every adventurer deserves to celebrate their dedication.
+
+**⭐ Reputation Tracking** *(for max-level characters)*
+Whenever you gain reputation, the bar temporarily switches to show your current standing, progress and faction name — for all reputation types including Renown, Friendships, Paragon and classic factions.
+
+**🔨 Profession Skill-Up Tracking** *(for max-level characters)*
+On every profession skill-up, the bar displays your current skill progress — supporting all primary and secondary professions across all expansion tiers.
