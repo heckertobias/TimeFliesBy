@@ -16,3 +16,5 @@ utils\reputation.lua
 
 WunderBar.lua
 TimeFliesBy.lua
+
+SkillNotifier.lua

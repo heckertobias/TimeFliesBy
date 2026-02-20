@@ -25,7 +25,8 @@
     "class",
     "RAID_CLASS_COLORS",
     "FACTION_BAR_COLORS",
-    "WorldFrame"
+    "WorldFrame",
+    "ERR_SKILL_UP_SI"
   ],
   "editor.wordWrap": "off"
 }
