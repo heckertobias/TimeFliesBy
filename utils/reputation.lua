@@ -26,7 +26,7 @@ function tfb.reputation:GetReputationChange()
             g = majorFactionData.factionFontColor.color.g
             b = majorFactionData.factionFontColor.color.b
           else
-            r, g, b = 0.0, 0.5, 1.0
+            r, g, b = tfb.colors:GetRenownColor()
           end
         end
 
@@ -40,7 +40,7 @@ function tfb.reputation:GetReputationChange()
             current = friendshipData.standing - (friendshipData.reactionThreshold or 0)
             max = friendshipData.nextThreshold and (friendshipData.nextThreshold - friendshipData.reactionThreshold) or 1
             currentValue = friendshipData.standing
-            r, g, b = 0.0, 1.0, 0.5
+            r, g, b = tfb.colors:GetFriendshipColor()
           end
 
           -- 3. Klassische Ruffraktionen
@@ -50,11 +50,8 @@ function tfb.reputation:GetReputationChange()
           current = factionData.currentStanding - factionData.currentReactionThreshold
           max = factionData.nextReactionThreshold - factionData.currentReactionThreshold
           currentValue = factionData.currentStanding
-          if factionData.reaction and FACTION_BAR_COLORS then
-            local color = FACTION_BAR_COLORS[factionData.reaction]
-            if color then
-              r, g, b = color.r, color.g, color.b
-            end
+          if factionData.reaction then
+            r, g, b = tfb.colors:GetFactionBarColor(factionData.reaction)
           end
         end
       end
