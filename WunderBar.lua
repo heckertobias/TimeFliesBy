@@ -31,6 +31,8 @@ text2:SetTextHeight(12)
 text2:Hide()
 
 local function HideBlizzStatusBar()
+  MainStatusTrackingBarContainer:Hide()
+  MainStatusTrackingBarContainer:UnregisterAllEvents()
   StatusTrackingBarManager:Hide()
   StatusTrackingBarManager:UnregisterAllEvents()
 end
