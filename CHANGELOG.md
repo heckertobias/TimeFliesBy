@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.4.1] - 2026-02-25
+- switch from max level bar back to exp bar when a new expansion starts
+
 ## [0.4.0] - 2026-02-25
 - switch expansion detection from build version string to GetExpansionLevel() API
 - expansion tracking now works correctly across pre-patches where the build version doesn't match the active expansion

@@ -164,6 +164,14 @@ tfb.events:Register("TIME_PLAYED_MSG", "writeTime", writeTime)
 local function onExpansionLevelChanged()
   local expansionName = tfb.gameVersion:GetCurrentExpansionName()
   RaidNotice_AddMessage(RaidWarningFrame, "Time Flies By: Welcome to " .. expansionName .. "!", ChatTypeInfo["RAID_WARNING"])
+
+  -- Switch back to exp bar if player is no longer max level
+  if not tfb.character:IsMaxLevel() then
+    tfb.events:Unregister("UPDATE_FACTION", "maxLvlBar")
+    tfb.events:Unregister("CHAT_MSG_SKILL", "maxLvlBar")
+    initExpBar()
+  end
+
   C_Timer.After(5, RequestTimePlayed)
 end
 tfb.events:Register("UPDATE_EXPANSION_LEVEL", "expansionChange", onExpansionLevelChanged)
