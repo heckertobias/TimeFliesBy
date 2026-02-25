@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.1] - 2026-02-25
+- hide Blizzard's status tracking bar on tutorial island (thx blizz for using a different ui there)
+- refactor color handling in reputation module to use color utility functions
+
 ## [0.3.0] - 2026-02-20
 - add profession skill-up tracking with bar display
 - show profession name, current/max skill and progress on skill-up
