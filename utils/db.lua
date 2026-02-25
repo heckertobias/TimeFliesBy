@@ -4,49 +4,95 @@ tfb.db = {}
 
 TimeFliesByDB = TimeFliesByDB or {}
 
+local DB_VERSION = 2
 local lastDbWrite
 
-local function initNewVersion(charKey, versionString, playedTime)
-  TimeFliesByDB["data"][charKey].currentVersionString = versionString
-  TimeFliesByDB["data"][charKey].expansions[versionString] = {
+-- Migration v1 -> v2: version-string-based keys to expansion-level-based keys
+local function migrateV1ToV2()
+  if not TimeFliesByDB["data"] then return end
+
+  for _, charData in pairs(TimeFliesByDB["data"]) do
+    if not charData.currentVersionString then break end
+
+    local newExpansions = {}
+    for versionString, data in pairs(charData.expansions) do
+      local level = tfb.gameVersion:GetExpansionLevelByVersion(versionString)
+      if level then
+        if newExpansions[level] then
+          newExpansions[level].createdAt = math.min(newExpansions[level].createdAt, data.createdAt)
+          newExpansions[level].lastUpdate = math.max(newExpansions[level].lastUpdate, data.lastUpdate)
+        else
+          newExpansions[level] = {
+            createdAt = data.createdAt,
+            lastUpdate = data.lastUpdate,
+          }
+        end
+      end
+    end
+
+    charData.expansions = newExpansions
+    charData.currentExpansionLevel = tfb.gameVersion:GetExpansionLevelByVersion(charData.currentVersionString)
+    charData.currentVersionString = nil
+  end
+end
+
+local migrations = {
+  [2] = migrateV1ToV2,
+}
+
+local function runMigrations()
+  local currentVersion = TimeFliesByDB["dbVersion"] or 1
+
+  for version = currentVersion + 1, DB_VERSION do
+    if migrations[version] then
+      migrations[version]()
+    end
+  end
+
+  TimeFliesByDB["dbVersion"] = DB_VERSION
+end
+
+local function initNewExpansion(charKey, expansionLevel, playedTime)
+  TimeFliesByDB["data"][charKey].currentExpansionLevel = expansionLevel
+  TimeFliesByDB["data"][charKey].expansions[expansionLevel] = {
     createdAt = playedTime,
     lastUpdate = playedTime
   }
 end
 
-local function initCharKey(charKey, versionString, playedTime, timePlayedAtLevel)
+local function initCharKey(charKey, expansionLevel, playedTime, timePlayedAtLevel)
   if not TimeFliesByDB["data"] then
     TimeFliesByDB["data"] = {}
   end
 
-  local minExpansionVersionString = tfb.gameVersion:GetMinimalVersionStringForCurrentExpansion()
   TimeFliesByDB["data"][charKey] = {
     initialPlayedTime = playedTime - timePlayedAtLevel,
-    currentVersionString = versionString,
-    expansions = {}
+    currentExpansionLevel = expansionLevel,
+    expansions = {
+      [expansionLevel] = {
+        createdAt = playedTime - timePlayedAtLevel,
+        lastUpdate = playedTime
+      }
+    }
   }
-  TimeFliesByDB["data"][charKey].expansions[minExpansionVersionString] = {
-    createdAt = playedTime - timePlayedAtLevel,
-    lastUpdate = playedTime
-  }
-  initNewVersion(charKey, versionString, playedTime)
 end
 
-function tfb.db:WriteTime(charKey, versionString, playedTime, timePlayedAtLevel)
+function tfb.db:Migrate()
+  runMigrations()
+end
+
+function tfb.db:WriteTime(charKey, expansionLevel, playedTime, timePlayedAtLevel)
   if not TimeFliesByDB["data"] or not TimeFliesByDB["data"][charKey] then
-    initCharKey(charKey, versionString, playedTime, timePlayedAtLevel)
+    initCharKey(charKey, expansionLevel, playedTime, timePlayedAtLevel)
     return
   end
 
-  -- update based on the last stored versionString
-  -- since the version should only change when not logges in
-  -- all previous time played was on the old version
-  local lastVersion = TimeFliesByDB["data"][charKey].currentVersionString
-  TimeFliesByDB["data"][charKey].expansions[lastVersion].lastUpdate = playedTime
+  local lastExpansion = TimeFliesByDB["data"][charKey].currentExpansionLevel
+  TimeFliesByDB["data"][charKey].expansions[lastExpansion].lastUpdate = playedTime
 
-  -- new version detected
-  if versionString ~= lastVersion then
-    initNewVersion(charKey, versionString, playedTime)
+  -- new expansion detected
+  if expansionLevel ~= lastExpansion then
+    initNewExpansion(charKey, expansionLevel, playedTime)
   end
   lastDbWrite = time()
 end
@@ -62,8 +108,8 @@ function tfb.db:GetCurrentPlayed(charKey)
   else
     timeSinceWrite = time() - lastDbWrite
   end
-  local currentVersion = TimeFliesByDB["data"][charKey].currentVersionString
-  local expansionData = TimeFliesByDB["data"][charKey].expansions[currentVersion]
+  local currentLevel = TimeFliesByDB["data"][charKey].currentExpansionLevel
+  local expansionData = TimeFliesByDB["data"][charKey].expansions[currentLevel]
 
   return expansionData.lastUpdate + timeSinceWrite
 end
@@ -72,8 +118,8 @@ function tfb.db:GetTotalPlaytime()
   local total = 0
 
   for _, charData in pairs(TimeFliesByDB["data"]) do
-    local currentVersion = charData.currentVersionString
-    local expansionData = charData.expansions[currentVersion]
+    local currentLevel = charData.currentExpansionLevel
+    local expansionData = charData.expansions[currentLevel]
     if expansionData then
       total = total + expansionData.lastUpdate
     end
@@ -88,20 +134,14 @@ function tfb.db:GetCharPlaytimeCurrentExpansion(charKey)
   end
 
   local charData = TimeFliesByDB["data"][charKey]
-  local currentVersion = charData.currentVersionString
-  local currentExpansion = tfb.gameVersion:GetExpansionNameByVersion(currentVersion)
+  local currentLevel = charData.currentExpansionLevel
+  local expansionData = charData.expansions[currentLevel]
 
-  local total = 0
-
-  -- Sum playtime for all versions that belong to the same expansion
-  for versionString, expansionData in pairs(charData.expansions) do
-    local expansion = tfb.gameVersion:GetExpansionNameByVersion(versionString)
-    if expansion == currentExpansion then
-      total = total + (expansionData.lastUpdate - expansionData.createdAt)
-    end
+  if expansionData then
+    return expansionData.lastUpdate - expansionData.createdAt
   end
 
-  return total
+  return 0
 end
 
 function tfb.db:SetYOffset(offset)

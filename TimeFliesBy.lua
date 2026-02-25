@@ -124,6 +124,8 @@ local function initWunderBar()
 end
 
 local function init()
+  tfb.db:Migrate()
+
   -- we wait 3 seconds to check the played time
   -- this gives other addons time to do this for us
   -- and pevents spamming the chatframe with /played
@@ -147,10 +149,10 @@ end
 
 local function writeTime(_, ...)
   local totalTimePlayed, timePlayedAtLevel = ...
-  local versionString = tfb.gameVersion:GetCurrentGameVersionString()
+  local expansionLevel = tfb.gameVersion:GetCurrentExpansionLevel()
   local charKey = tfb.character:GetCharKey()
 
-  tfb.db:WriteTime(charKey, versionString, totalTimePlayed, timePlayedAtLevel)
+  tfb.db:WriteTime(charKey, expansionLevel, totalTimePlayed, timePlayedAtLevel)
   C_Timer.After(0.1, function()
     addTimeMessage(charKey)
   end)
@@ -158,6 +160,13 @@ local function writeTime(_, ...)
   initialTimeChecked = true
 end
 tfb.events:Register("TIME_PLAYED_MSG", "writeTime", writeTime)
+
+local function onExpansionLevelChanged()
+  local expansionName = tfb.gameVersion:GetCurrentExpansionName()
+  RaidNotice_AddMessage(RaidWarningFrame, "Time Flies By: Welcome to " .. expansionName .. "!", ChatTypeInfo["RAID_WARNING"])
+  C_Timer.After(5, RequestTimePlayed)
+end
+tfb.events:Register("UPDATE_EXPANSION_LEVEL", "expansionChange", onExpansionLevelChanged)
 
 SLASH_TFB1 = "/tfb"
 SlashCmdList["TFB"] = function(msg)

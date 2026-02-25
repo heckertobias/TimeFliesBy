@@ -26,7 +26,10 @@
     "RAID_CLASS_COLORS",
     "FACTION_BAR_COLORS",
     "WorldFrame",
-    "ERR_SKILL_UP_SI"
+    "ERR_SKILL_UP_SI",
+    "RaidNotice_AddMessage",
+    "RaidWarningFrame",
+    "ChatTypeInfo"
   ],
   "editor.wordWrap": "off"
 }

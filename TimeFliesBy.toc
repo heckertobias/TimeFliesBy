@@ -2,7 +2,7 @@
 ## Title: Time Flies By
 ## Notes: Track your time played over alts and expansions.
 ## Author: Zyx <heckertobias@googlemail.com>
-## Version: 0.3.0
+## Version: 0.4.0
 ## IconTexture: Interface\AddOns\TimeFliesBy\media\icon
 ## SavedVariables: TimeFliesByDB
 

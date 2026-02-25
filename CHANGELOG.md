@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0] - 2026-02-25
+- switch expansion detection from build version string to GetExpansionLevel() API
+- expansion tracking now works correctly across pre-patches where the build version doesn't match the active expansion
+- migrate existing playtime data from version-string-based keys to expansion-level-based keys (no data loss)
+- add DB version system for future-proof migrations
+- automatically re-track playtime when expansion level changes (e.g. Midnight launch)
+- show raid warning message when a new expansion is detected
+
 ## [0.3.1] - 2026-02-25
 - hide Blizzard's status tracking bar on tutorial island (thx blizz for using a different ui there)
 - refactor color handling in reputation module to use color utility functions
