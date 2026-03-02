@@ -144,6 +144,19 @@ function tfb.db:GetCharPlaytimeCurrentExpansion(charKey)
   return 0
 end
 
+function tfb.db:GetAllCharsPlaytimeCurrentExpansion(expansionLevel)
+  local total = 0
+
+  for _, charData in pairs(TimeFliesByDB["data"]) do
+    local expansionData = charData.expansions[expansionLevel]
+    if expansionData then
+      total = total + expansionData.lastUpdate - expansionData.createdAt
+    end
+  end
+
+  return total
+end
+
 function tfb.db:SetYOffset(offset)
   TimeFliesByDB["yOffset"] = offset
 end

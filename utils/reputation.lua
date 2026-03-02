@@ -8,7 +8,7 @@ function tfb.reputation:GetReputationChange()
   for i = 1, C_Reputation.GetNumFactions() do
     local factionData = C_Reputation.GetFactionDataByIndex(i)
 
-    if factionData and not factionData.isHeader and factionData.factionID then
+    if factionData and factionData.factionID then
       local name, standing, current, max, currentValue, r, g, b
 
       -- 1. Renown (Major Factions)

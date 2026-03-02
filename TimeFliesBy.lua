@@ -143,8 +143,12 @@ local function addTimeMessage(charKey)
   local totalTime = tfb.db:GetTotalPlaytime()
   local currentExpansion = tfb.gameVersion:GetCurrentExpansionName()
 
+  local expansionLevel = tfb.gameVersion:GetCurrentExpansionLevel()
+  local allCharsExpansionTime = tfb.db:GetAllCharsPlaytimeCurrentExpansion(expansionLevel)
+
   tfb.chat:AddMessage("Time played in " .. currentExpansion .. ": " .. tfb.chat:FormatPlaytime(expansionTime))
-  tfb.chat:AddMessage("Time played on all charaters: " .. tfb.chat:FormatPlaytime(totalTime))
+  tfb.chat:AddMessage("Time played in " .. currentExpansion .. " on all characters: " .. tfb.chat:FormatPlaytime(allCharsExpansionTime))
+  tfb.chat:AddMessage("Time played on all characters: " .. tfb.chat:FormatPlaytime(totalTime))
 end
 
 local function writeTime(_, ...)

@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.5.0] - 2026-03-02
+- show total playtime across all characters for the current expansion on /played
+- fix reputation bar not showing for factions marked as headers (e.g. Silvermoon Court)
+
 ## [0.4.2] - 2026-03-02
 - fix max skill level display for secondary professions (Fishing, Cooking, Archaeology) using per-expansion lookup table
 
