@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.4.2] - 2026-03-02
+- fix max skill level display for secondary professions (Fishing, Cooking, Archaeology) using per-expansion lookup table
+
 ## [0.4.1] - 2026-02-25
 - switch from max level bar back to exp bar when a new expansion starts
 

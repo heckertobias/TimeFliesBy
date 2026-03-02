@@ -2,15 +2,37 @@ local _, tfb = ...
 
 tfb.skill = {}
 
--- Expansions-Tier SkillLine-IDs für sekundäre Berufe
--- (GetAllProfessionTradeSkillLines gibt nur Hauptberufe zurück)
-local SECONDARY_SKILL_LINES = {
+-- SkillLineID → maxSkillLevel for secondary professions
+-- (GetProfessionInfoBySkillLineID returns maxSkillLevel=0 for secondary professions)
+local SECONDARY_MAX_SKILL = {
   -- Fishing (Parent: 356)
-  356, 2592, 2591, 2590, 2589, 2588, 2587, 2586, 2585, 2754, 2826,
+  [2592] = 300,  -- Classic
+  [2591] = 75,   -- The Burning Crusade
+  [2590] = 75,   -- Wrath of the Lich King
+  [2589] = 75,   -- Cataclysm
+  [2588] = 75,   -- Mists of Pandaria
+  [2587] = 100,  -- Warlords of Draenor
+  [2586] = 100,  -- Legion
+  [2585] = 175,  -- Battle for Azeroth
+  [2754] = 200,  -- Shadowlands
+  [2826] = 100,  -- Dragonflight
+  [2876] = 300,  -- The War Within
+  [2911] = 300,  -- Midnight
   -- Cooking (Parent: 185)
-  185, 2548, 2547, 2546, 2545, 2544, 2543, 2542, 2541, 2752, 2824,
-  -- Archaeology (altes Skill-System, keine Expansions-Tiers)
-  794,
+  [2548] = 300,  -- Classic
+  [2547] = 75,   -- The Burning Crusade
+  [2546] = 75,   -- Wrath of the Lich King
+  [2545] = 75,   -- Cataclysm
+  [2544] = 75,   -- Mists of Pandaria
+  [2543] = 100,  -- Warlords of Draenor
+  [2542] = 100,  -- Legion
+  [2541] = 175,  -- Battle for Azeroth
+  [2752] = 75,   -- Shadowlands
+  [2824] = 100,  -- Dragonflight
+  [2873] = 100,  -- The War Within
+  [2908] = 100,  -- Midnight
+  -- Archaeology (old skill system, no expansion tiers)
+  [794]  = 950,
 }
 
 function tfb.skill:ParseSkillMsg(message)
@@ -23,16 +45,24 @@ function tfb.skill:ParseSkillMsg(message)
   skillLevel = tonumber(skillLevel)
   local maxSkillLevel = nil
 
+  -- Primary professions: maxSkillLevel from API (works reliably)
   local skillLinesToCheck = C_TradeSkillUI.GetAllProfessionTradeSkillLines() or {}
-  for _, id in ipairs(SECONDARY_SKILL_LINES) do
-    skillLinesToCheck[#skillLinesToCheck + 1] = id
-  end
-
   for _, skillLineID in ipairs(skillLinesToCheck) do
     local info = C_TradeSkillUI.GetProfessionInfoBySkillLineID(skillLineID)
     if info and info.professionName == professionName then
       maxSkillLevel = info.maxSkillLevel
       break
+    end
+  end
+
+  -- Secondary professions: name matching via SkillLineID, maxSkillLevel from lookup table
+  if not maxSkillLevel or maxSkillLevel == 0 then
+    for skillLineID, max in pairs(SECONDARY_MAX_SKILL) do
+      local info = C_TradeSkillUI.GetProfessionInfoBySkillLineID(skillLineID)
+      if info and info.professionName == professionName then
+        maxSkillLevel = max
+        break
+      end
     end
   end
 

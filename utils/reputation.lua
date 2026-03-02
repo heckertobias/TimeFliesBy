@@ -20,7 +20,7 @@ function tfb.reputation:GetReputationChange()
           current = majorFactionData.renownReputationEarned
           max = majorFactionData.renownLevelThreshold
           currentValue = majorFactionData.renownReputationEarned
-          -- Blizzard-Farben mit Fallback
+          -- Blizzard colors with fallback
           if majorFactionData.factionFontColor then
             r = majorFactionData.factionFontColor.color.r
             g = majorFactionData.factionFontColor.color.g
@@ -43,7 +43,7 @@ function tfb.reputation:GetReputationChange()
             r, g, b = tfb.colors:GetFriendshipColor()
           end
 
-          -- 3. Klassische Ruffraktionen
+          -- 3. Classic reputation factions
         else
           name = factionData.name
           standing = _G["FACTION_STANDING_LABEL" .. (factionData.reaction or 4)] or ""
@@ -69,12 +69,12 @@ function tfb.reputation:GetReputationChange()
         end
       end
 
-      -- Cache-Logik: Nur ausgeben bei Änderung
+      -- Cache logic: only return on change
       if currentValue then
         local cached = repCache[factionData.factionID]
 
         if cached then
-          -- Fraktion existiert im Cache - prüfe auf Änderung
+          -- Faction exists in cache - check for change
           if cached ~= currentValue then
             repCache[factionData.factionID] = currentValue
 
@@ -88,7 +88,7 @@ function tfb.reputation:GetReputationChange()
             }
           end
         else
-          -- Fraktion existiert noch nicht im Cache - nur anlegen
+          -- Faction not yet in cache - just initialize it
           repCache[factionData.factionID] = currentValue
         end
       end
