@@ -6,7 +6,7 @@ local WunderBar = tfb.WunderBar
 local specialBarVisibleTime = 60
 
 local alternativeWatch = 0
-local function updateMaxLvlBar(event, message)
+local function updateMaxLvlBar(event, ...)
   if event == "UPDATE_FACTION" then
     local faction = tfb.reputation:GetReputationChange()
     if faction ~= nil then
@@ -19,12 +19,25 @@ local function updateMaxLvlBar(event, message)
   end
 
   if event == "CHAT_MSG_SKILL" then
+    local message = ...
     local skill = tfb.skill:ParseSkillMsg(message)
     if skill ~= nil then
       WunderBar:SetBar1Color(skill.GetColor())
       WunderBar:SetValues(skill.max, skill.current)
       local perc = floor((skill.current / skill.max) * 100)
       WunderBar:SetText(string.format("%s - %d / %d (%d%%)", skill.name, skill.current, skill.max, perc))
+      alternativeWatch = time() + specialBarVisibleTime
+    end
+  end
+
+  if event == "HOUSE_LEVEL_FAVOR_UPDATED" then
+    local houseLevelFavor = ...
+    local housing = tfb.housing:GetHousingChange(houseLevelFavor.houseLevel, houseLevelFavor.houseFavor, houseLevelFavor.houseGUID)
+    if housing ~= nil then
+      WunderBar:SetBar1Color(housing.GetColor())
+      WunderBar:SetValues(housing.max, housing.current)
+      local perc = floor((housing.current / housing.max) * 100)
+      WunderBar:SetText(string.format("%s - %d / %d (%d%%)", housing.name, housing.current, housing.max, perc), "Level " .. housing.level)
       alternativeWatch = time() + specialBarVisibleTime
     end
   end
@@ -43,6 +56,7 @@ local function initMaxLvlBar()
   tfb.reputation:GetReputationChange() -- init
   tfb.events:Register("UPDATE_FACTION", "maxLvlBar", updateMaxLvlBar)
   tfb.events:Register("CHAT_MSG_SKILL", "maxLvlBar", updateMaxLvlBar)
+  tfb.events:Register("HOUSE_LEVEL_FAVOR_UPDATED", "maxLvlBar", updateMaxLvlBar)
 end
 
 local sessionStart, sessionStartExp
@@ -173,6 +187,7 @@ local function onExpansionLevelChanged()
   if not tfb.character:IsMaxLevel() then
     tfb.events:Unregister("UPDATE_FACTION", "maxLvlBar")
     tfb.events:Unregister("CHAT_MSG_SKILL", "maxLvlBar")
+    tfb.events:Unregister("HOUSE_LEVEL_FAVOR_UPDATED", "maxLvlBar")
     initExpBar()
   end
 

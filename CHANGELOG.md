@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.0] - 2026-03-05
+- add housing XP (favor) tracking with bar display at max level
+- show house level, current/max favor and progress percentage for 60 seconds on favor gain
+
 ## [0.5.0] - 2026-03-02
 - show total playtime across all characters for the current expansion on /played
 - fix reputation bar not showing for factions marked as headers (e.g. Silvermoon Court)

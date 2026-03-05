@@ -26,6 +26,10 @@ function tfb.colors:GetRenownColor()
   return 0.0, 0.5, 1.0
 end
 
+function tfb.colors:GetHousingColor()
+  return 0.72, 0.53, 0.26
+end
+
 function tfb.colors:GetFactionBarColor(reaction)
   if reaction and FACTION_BAR_COLORS then
     local color = FACTION_BAR_COLORS[reaction]

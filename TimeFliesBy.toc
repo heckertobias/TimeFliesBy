@@ -2,7 +2,7 @@
 ## Title: Time Flies By
 ## Notes: Track your time played over alts and expansions.
 ## Author: Zyx <heckertobias@googlemail.com>
-## Version: 0.5.0
+## Version: 0.6.0
 ## IconTexture: Interface\AddOns\TimeFliesBy\media\icon
 ## SavedVariables: TimeFliesByDB
 
@@ -14,6 +14,7 @@ utils\db.lua
 utils\chat.lua
 utils\reputation.lua
 utils\skill.lua
+utils\housing.lua
 
 WunderBar.lua
 TimeFliesBy.lua
