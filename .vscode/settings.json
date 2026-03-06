@@ -29,7 +29,25 @@
     "ERR_SKILL_UP_SI",
     "RaidNotice_AddMessage",
     "RaidWarningFrame",
-    "ChatTypeInfo"
+    "ChatTypeInfo",
+    "StaticPopupDialogs",
+    "StaticPopup_Show",
+    "CLOSE",
+    "Settings",
+    "SettingsPanel",
+    "ReloadUI",
+    "UISpecialFrames",
+    "STANDARD_TEXT_FONT",
+    "SOUNDKIT",
+    "CooldownFrame_Set",
+    "CreateSettingsButtonInitializer",
+    "ScrollBoxFactoryInitializerMixin",
+    "SettingsElementHierarchyMixin",
+    "SettingsSearchableElementMixin",
+    "ChatFrame1",
+    "MinimalSliderWithSteppersMixin",
+    "ChatFrame1Background"
   ],
-  "editor.wordWrap": "off"
+  "editor.wordWrap": "off",
+  "Lua.type.weakUnionCheck": true
 }

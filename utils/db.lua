@@ -164,3 +164,89 @@ end
 function tfb.db:GetYOffset()
   return TimeFliesByDB["yOffset"]
 end
+
+function tfb.db:GetPositionPreset()
+  return TimeFliesByDB["positionPreset"] or 1
+end
+
+function tfb.db:SetPositionPreset(preset)
+  TimeFliesByDB["positionPreset"] = preset
+end
+
+function tfb.db:GetTextFollowsOffset()
+  if TimeFliesByDB["textFollowsOffset"] == nil then
+    return false
+  end
+  return TimeFliesByDB["textFollowsOffset"]
+end
+
+function tfb.db:SetTextFollowsOffset(value)
+  TimeFliesByDB["textFollowsOffset"] = value
+end
+
+function tfb.db:GetUseBlizzardExpBar()
+  if TimeFliesByDB["useBlizzardExpBar"] == nil then
+    return false
+  end
+  return TimeFliesByDB["useBlizzardExpBar"]
+end
+
+function tfb.db:SetUseBlizzardExpBar(value)
+  TimeFliesByDB["useBlizzardExpBar"] = value
+end
+
+function tfb.db:GetBarHeight()
+  return TimeFliesByDB["barHeight"] or 5
+end
+
+function tfb.db:SetBarHeight(height)
+  TimeFliesByDB["barHeight"] = height
+end
+
+function tfb.db:GetFreePositionX()
+  return TimeFliesByDB["freePositionX"]
+end
+
+function tfb.db:GetFreePositionY()
+  return TimeFliesByDB["freePositionY"]
+end
+
+function tfb.db:SetFreePosition(x, y)
+  TimeFliesByDB["freePositionX"] = x
+  TimeFliesByDB["freePositionY"] = y
+end
+
+function tfb.db:GetFreePositionLocked()
+  if TimeFliesByDB["freePositionLocked"] == nil then
+    return false
+  end
+  return TimeFliesByDB["freePositionLocked"]
+end
+
+function tfb.db:SetFreePositionLocked(value)
+  TimeFliesByDB["freePositionLocked"] = value
+end
+
+function tfb.db:GetBarWidth()
+  return TimeFliesByDB["barWidth"] or 400
+end
+
+function tfb.db:SetBarWidth(width)
+  TimeFliesByDB["barWidth"] = width
+end
+
+function tfb.db:GetTextPosition()
+  return TimeFliesByDB["textPosition"] or "bottom"
+end
+
+function tfb.db:SetTextPosition(value)
+  TimeFliesByDB["textPosition"] = value
+end
+
+function tfb.db:GetTextAlignment()
+  return TimeFliesByDB["textAlignment"] or "CENTER"
+end
+
+function tfb.db:SetTextAlignment(value)
+  TimeFliesByDB["textAlignment"] = value
+end

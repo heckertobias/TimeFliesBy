@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.0] - 2026-03-06
+- add Blizzard AddOn Options Panel (accessible via /tfb or ESC > Options > AddOns)
+- add bar position presets: Top of Screen, Bottom of Screen, Below Chat Window, Free Position
+- add free positioning mode with drag & drop support and lock option
+- add configurable bar height and bar width (free position mode)
+- add Y-Offset slider with manual input field for precise positioning
+- add text position (top/bottom) and text alignment (left/center/right) options for free position mode
+- add option to keep the Blizzard experience bar while showing the playtime bar simultaneously
+- add option to control whether text follows the Y-Offset or stays at default position
+
 ## [0.6.0] - 2026-03-05
 - add housing XP (favor) tracking with bar display at max level
 - show house level, current/max favor and progress percentage for 60 seconds on favor gain

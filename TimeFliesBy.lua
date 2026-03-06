@@ -81,6 +81,7 @@ local function checkPlayerReachedMaxLvl()
     tfb.events:Unregister("PLAYER_LEVEL_UP", "updateXP")
     tfb.events:Unregister("UPDATE_EXHAUSTION", "updateXP")
 
+    WunderBar:HideBlizzStatusBar()
     initMaxLvlBar()
     return true
   end
@@ -130,10 +131,16 @@ local function initExpBar()
 end
 
 local function initWunderBar()
-  if tfb.character:IsMaxLevel() then
+  if tfb.db:GetUseBlizzardExpBar() then
+    -- Blizzard handles XP, WunderBar shows playtime
     initMaxLvlBar()
   else
-    initExpBar()
+    WunderBar:HideBlizzStatusBar()
+    if tfb.character:IsMaxLevel() then
+      initMaxLvlBar()
+    else
+      initExpBar()
+    end
   end
 end
 
@@ -196,17 +203,6 @@ end
 tfb.events:Register("UPDATE_EXPANSION_LEVEL", "expansionChange", onExpansionLevelChanged)
 
 SLASH_TFB1 = "/tfb"
-SlashCmdList["TFB"] = function(msg)
-  local command, value = msg:match("^(%S+)%s*(.-)%s*$")
-  if command == "offset" then
-    local offset = tonumber(value)
-    if offset then
-      tfb.db:SetYOffset(offset)
-      tfb.chat:AddMessage("Y-Offset set to " .. offset)
-    else
-      tfb.chat:AddMessage("Usage: /tfb offset [number]")
-    end
-  else
-    tfb.chat:AddMessage("Usage: /tfb offset [number]")
-  end
+SlashCmdList["TFB"] = function()
+  Settings.OpenToCategory(tfb.settingsCategory:GetID())
 end
