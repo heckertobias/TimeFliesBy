@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.1.0] - 2026-04-10
+- add Paragon Rewards list: shows factions with a pending paragon reward box
+- list is only visible when rewards are available, hidden otherwise
+- list is draggable and freely positionable on screen
+- add settings under /tfb > Paragon Rewards:
+  - enable/disable the list entirely
+  - grow direction: list grows down (header top) or up (anchor bottom, header top)
+  - text alignment: left or right
+  - faction color or white for faction names
+  - show/hide background
+  - hide in competitive content (dungeons, raids, battlegrounds, arenas, delves)
+  - lock position to prevent accidental dragging
+  - test mode: shows placeholder entries for positioning
+
 ## [1.0.0] - 2026-03-06
 - add Blizzard AddOn Options Panel (accessible via /tfb or ESC > Options > AddOns)
 - add bar position presets: Top of Screen, Bottom of Screen, Below Chat Window, Free Position

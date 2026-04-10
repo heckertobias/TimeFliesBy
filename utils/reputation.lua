@@ -97,3 +97,42 @@ function tfb.reputation:GetReputationChange()
 
   return nil
 end
+
+function tfb.reputation:GetParagonRewards()
+  local rewards = {}
+
+  for i = 1, C_Reputation.GetNumFactions() do
+    local factionData = C_Reputation.GetFactionDataByIndex(i)
+
+    if factionData and factionData.factionID then
+      if C_Reputation.IsFactionParagonForCurrentPlayer(factionData.factionID) then
+        local _, _, _, hasRewardPending = C_Reputation.GetFactionParagonInfo(factionData.factionID)
+
+        if hasRewardPending then
+          local r, g, b
+
+          if C_Reputation.IsMajorFaction(factionData.factionID) then
+            local majorData = C_MajorFactions.GetMajorFactionData(factionData.factionID)
+            if majorData and majorData.factionFontColor then
+              r = majorData.factionFontColor.color.r
+              g = majorData.factionFontColor.color.g
+              b = majorData.factionFontColor.color.b
+            else
+              r, g, b = tfb.colors:GetRenownColor()
+            end
+          else
+            r, g, b = tfb.colors:GetFactionBarColor(factionData.reaction or 8)
+          end
+
+          table.insert(rewards, {
+            name = factionData.name,
+            factionID = factionData.factionID,
+            r = r or 1, g = g or 1, b = b or 1,
+          })
+        end
+      end
+    end
+  end
+
+  return rewards
+end

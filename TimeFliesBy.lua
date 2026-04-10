@@ -147,6 +147,10 @@ end
 local function init()
   tfb.db:Migrate()
 
+  tfb.events:Register("UPDATE_FACTION", "paragonList", function()
+    tfb.ParagonList:Refresh()
+  end)
+
   -- we wait 3 seconds to check the played time
   -- this gives other addons time to do this for us
   -- and pevents spamming the chatframe with /played
@@ -155,6 +159,7 @@ local function init()
       RequestTimePlayed()
     end
     initWunderBar()
+    tfb.ParagonList:Refresh()
   end)
 end
 tfb.events:Register("PLAYER_LOGIN", "init", init)

@@ -250,3 +250,87 @@ end
 function tfb.db:SetTextAlignment(value)
   TimeFliesByDB["textAlignment"] = value
 end
+
+function tfb.db:GetParagonListX()
+  return TimeFliesByDB["paragonListX"]
+end
+
+function tfb.db:GetParagonListY()
+  return TimeFliesByDB["paragonListY"]
+end
+
+function tfb.db:SetParagonListPosition(x, y)
+  TimeFliesByDB["paragonListX"] = x
+  TimeFliesByDB["paragonListY"] = y
+end
+
+function tfb.db:GetParagonListLocked()
+  if TimeFliesByDB["paragonListLocked"] == nil then
+    return false
+  end
+  return TimeFliesByDB["paragonListLocked"]
+end
+
+function tfb.db:SetParagonListLocked(value)
+  TimeFliesByDB["paragonListLocked"] = value
+end
+
+function tfb.db:GetParagonListGrowDirection()
+  return TimeFliesByDB["paragonListGrowDirection"] or "down"
+end
+
+function tfb.db:SetParagonListGrowDirection(value)
+  TimeFliesByDB["paragonListGrowDirection"] = value
+end
+
+function tfb.db:GetParagonListUseFactionColor()
+  if TimeFliesByDB["paragonListUseFactionColor"] == nil then
+    return true
+  end
+  return TimeFliesByDB["paragonListUseFactionColor"]
+end
+
+function tfb.db:SetParagonListUseFactionColor(value)
+  TimeFliesByDB["paragonListUseFactionColor"] = value
+end
+
+function tfb.db:GetParagonListShowBackground()
+  if TimeFliesByDB["paragonListShowBackground"] == nil then
+    return true
+  end
+  return TimeFliesByDB["paragonListShowBackground"]
+end
+
+function tfb.db:SetParagonListShowBackground(value)
+  TimeFliesByDB["paragonListShowBackground"] = value
+end
+
+function tfb.db:GetParagonListEnabled()
+  if TimeFliesByDB["paragonListEnabled"] == nil then
+    return true
+  end
+  return TimeFliesByDB["paragonListEnabled"]
+end
+
+function tfb.db:SetParagonListEnabled(value)
+  TimeFliesByDB["paragonListEnabled"] = value
+end
+
+function tfb.db:GetParagonListHideInCompetitive()
+  if TimeFliesByDB["paragonListHideInCompetitive"] == nil then
+    return false
+  end
+  return TimeFliesByDB["paragonListHideInCompetitive"]
+end
+
+function tfb.db:SetParagonListHideInCompetitive(value)
+  TimeFliesByDB["paragonListHideInCompetitive"] = value
+end
+
+function tfb.db:GetParagonListTextAlign()
+  return TimeFliesByDB["paragonListTextAlign"] or "LEFT"
+end
+
+function tfb.db:SetParagonListTextAlign(value)
+  TimeFliesByDB["paragonListTextAlign"] = value
+end
