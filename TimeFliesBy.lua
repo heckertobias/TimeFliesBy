@@ -59,20 +59,58 @@ local function initMaxLvlBar()
   tfb.events:Register("HOUSE_LEVEL_FAVOR_UPDATED", "maxLvlBar", updateMaxLvlBar)
 end
 
-local sessionStart, sessionStartExp
-local function getExpPerHour(exp)
-  if not sessionStartExp or sessionStartExp > exp then
-    sessionStart = time()
-    sessionStartExp = exp
-  end
-  if sessionStart and sessionStart > 0 then
-    local sessionTime = time() - sessionStart
-    local coeff = sessionTime / 3600
-    local sessionExp = exp - sessionStartExp
-    if coeff > 0 and sessionExp > 0 then
-      return ceil(sessionExp / coeff)
+-- Rolling-window XP rate tracker.
+-- Records recent XP gains as { t = timestamp, amount = gained } and returns the
+-- average XP per second over the last XP_WINDOW seconds. Survives level-ups and
+-- reflects the player's current pace rather than the whole-session average.
+local XP_WINDOW = 900 -- 15 minutes
+local xpSamples = {}
+local lastXP, lastMax
+
+local function recordXPAndGetRate(xp, max)
+  local now = time()
+
+  -- Record XP gained since the last update, accounting for level-ups.
+  if lastXP ~= nil then
+    local gained
+    if xp >= lastXP then
+      gained = xp - lastXP
+    else
+      -- Leveled up: finished the remainder of the previous level + new progress.
+      gained = (lastMax - lastXP) + xp
+    end
+    if gained > 0 then
+      table.insert(xpSamples, { t = now, amount = gained })
     end
   end
+  lastXP = xp
+  lastMax = max
+
+  -- Drop samples that have aged out of the window.
+  local cutoff = now - XP_WINDOW
+  while xpSamples[1] and xpSamples[1].t < cutoff do
+    table.remove(xpSamples, 1)
+  end
+
+  -- Need at least two samples; exclude the oldest amount so the numerator and
+  -- denominator cover the same interval (now - oldest.t).
+  if #xpSamples < 2 then
+    return nil
+  end
+  local span = now - xpSamples[1].t
+  if span <= 0 then
+    return nil
+  end
+
+  local total = 0
+  for i = 2, #xpSamples do
+    total = total + xpSamples[i].amount
+  end
+  if total <= 0 then
+    return nil
+  end
+
+  return total / span -- XP per second
 end
 
 local function checkPlayerReachedMaxLvl()
@@ -99,11 +137,14 @@ local function updateXP()
   local rested = GetXPExhaustion() or 0
   WunderBar:SetValues(max, xp, xp + rested)
 
-  local expPerHour = getExpPerHour(xp)
+  local xpPerSec = recordXPAndGetRate(xp, max)
   local timeTilNextLvlStr
-  if expPerHour then
-    local secTilNextLvl = ceil((max / expPerHour) * 3600)
-    timeTilNextLvlStr = "Next Level in: " .. tfb.chat:FormatPlaytime(secTilNextLvl)
+  if xpPerSec and xpPerSec > 0 then
+    local remaining = max - xp
+    if remaining > 0 then
+      local secTilNextLvl = ceil(remaining / xpPerSec)
+      timeTilNextLvlStr = "Next Level in: " .. tfb.chat:FormatPlaytime(secTilNextLvl)
+    end
   end
 
   local perc = 0
