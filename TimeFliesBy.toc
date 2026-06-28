@@ -1,4 +1,4 @@
-## Interface: 120001
+## Interface: 120007
 ## Title: Time Flies By
 ## Notes: Track your time played over alts and expansions.
 ## Author: Zyx <heckertobias@googlemail.com>
