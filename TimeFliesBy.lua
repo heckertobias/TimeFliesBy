@@ -11,9 +11,15 @@ local function updateMaxLvlBar(event, ...)
     local faction = tfb.reputation:GetReputationChange()
     if faction ~= nil then
       WunderBar:SetBar1Color(faction.GetColor())
-      WunderBar:SetValues(faction.max, faction.current)
-      local perc = floor((faction.current / faction.max) * 100)
-      WunderBar:SetText(string.format("%s - %d / %d (%d%%)", faction.name, faction.current, faction.max, perc), faction.standing)
+      if faction.max and faction.max > 0 then
+        WunderBar:SetValues(faction.max, faction.current)
+        local perc = floor((faction.current / faction.max) * 100)
+        WunderBar:SetText(string.format("%s - %d / %d (%d%%)", faction.name, faction.current, faction.max, perc), faction.standing)
+      else
+        -- Max standing reached (e.g. Exalted): full bar, no raw 0/0 numbers
+        WunderBar:SetValues(1, 1)
+        WunderBar:SetText(string.format("%s - %s", faction.name, faction.standing))
+      end
       alternativeWatch = time() + specialBarVisibleTime
     end
   end

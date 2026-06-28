@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.1.2] - 2026-06-28
+- fix integer-overflow error ("attempting to store nan") and disappearing bar when a faction reached max standing (Exalted); now shows a full "Name - Exalted" bar instead
+
 ## [1.1.1] - 2026-06-28
 - fix "Next Level in" estimate: now uses remaining XP (not a full level) and a rolling 15-min XP rate that survives level-ups instead of resetting
 
