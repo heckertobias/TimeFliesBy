@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.3] - 2026-08-13
+- fix login crash ("attempt to call a nil value" in IsMaxLevel) that prevented the bar and the paragon list from initializing; the Blizzard helpers IsPlayerAtEffectiveMaxLevel and IsLevelAtEffectiveMaxLevel were removed in patch 12.1.0
+- update interface version for game patch 12.1.0
+
 ## [1.1.2] - 2026-06-28
 - fix integer-overflow error ("attempting to store nan") and disappearing bar when a faction reached max standing (Exalted); now shows a full "Name - Exalted" bar instead
 - update interface version for game patch 12.0.7
