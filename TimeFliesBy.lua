@@ -207,6 +207,13 @@ local function init()
     end
     initWunderBar()
     tfb.ParagonList:Refresh()
+
+    -- Own ticker instead of reusing the max level one: that ticker does not exist
+    -- while the XP bar is shown, and initMaxLvlBar can run more than once per
+    -- session. This one is mode independent and runs for the whole session.
+    C_Timer.NewTicker(30, function()
+      tfb.birthday:Check()
+    end)
   end)
 end
 tfb.events:Register("PLAYER_LOGIN", "init", init)

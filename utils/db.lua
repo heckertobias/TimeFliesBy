@@ -82,6 +82,11 @@ function tfb.db:Migrate()
 end
 
 function tfb.db:WriteTime(charKey, expansionLevel, playedTime, timePlayedAtLevel)
+  -- Set before the initCharKey branch: GetCurrentPlayed extrapolates from this
+  -- timestamp, so leaving it unset on a brand new character freezes the reported
+  -- playtime for the rest of the session.
+  lastDbWrite = time()
+
   if not TimeFliesByDB["data"] or not TimeFliesByDB["data"][charKey] then
     initCharKey(charKey, expansionLevel, playedTime, timePlayedAtLevel)
     return
@@ -94,7 +99,6 @@ function tfb.db:WriteTime(charKey, expansionLevel, playedTime, timePlayedAtLevel
   if expansionLevel ~= lastExpansion then
     initNewExpansion(charKey, expansionLevel, playedTime)
   end
-  lastDbWrite = time()
 end
 
 function tfb.db:GetCurrentPlayed(charKey)
@@ -333,4 +337,57 @@ end
 
 function tfb.db:SetParagonListTextAlign(value)
   TimeFliesByDB["paragonListTextAlign"] = value
+end
+
+function tfb.db:GetBirthdayJingleEnabled()
+  if TimeFliesByDB["birthdayJingleEnabled"] == nil then
+    return false
+  end
+  return TimeFliesByDB["birthdayJingleEnabled"]
+end
+
+function tfb.db:SetBirthdayJingleEnabled(value)
+  TimeFliesByDB["birthdayJingleEnabled"] = value
+end
+
+function tfb.db:GetBirthdayJingleChannel()
+  return TimeFliesByDB["birthdayJingleChannel"] or "Master"
+end
+
+function tfb.db:SetBirthdayJingleChannel(value)
+  TimeFliesByDB["birthdayJingleChannel"] = value
+end
+
+function tfb.db:GetBirthdayJinglePlayInCompetitive()
+  if TimeFliesByDB["birthdayJinglePlayInCompetitive"] == nil then
+    return false
+  end
+  return TimeFliesByDB["birthdayJinglePlayInCompetitive"]
+end
+
+function tfb.db:SetBirthdayJinglePlayInCompetitive(value)
+  TimeFliesByDB["birthdayJinglePlayInCompetitive"] = value
+end
+
+-- Per-character counter of how many full played days have already been celebrated.
+-- nil means "not primed yet" and must not trigger a celebration.
+function tfb.db:GetLastCelebratedDay(charKey)
+  local charData = TimeFliesByDB["data"] and TimeFliesByDB["data"][charKey]
+  if not charData then
+    return nil
+  end
+  return charData.lastCelebratedDay
+end
+
+function tfb.db:SetLastCelebratedDay(charKey, days)
+  local charData = TimeFliesByDB["data"] and TimeFliesByDB["data"][charKey]
+  if not charData then
+    return
+  end
+  charData.lastCelebratedDay = days
+end
+
+-- True once WriteTime has stored playtime for this character.
+function tfb.db:HasCharData(charKey)
+  return TimeFliesByDB["data"] ~= nil and TimeFliesByDB["data"][charKey] ~= nil
 end

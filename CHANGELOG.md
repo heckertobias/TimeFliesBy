@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.2.0] - 2026-08-17
+- add birthday jingle: plays a short chiptune "Happy Birthday" tune whenever a character completes another full day of total time played (every 24 hours)
+- the jingle works in every bar mode, including while leveling
+- add settings under /tfb > Birthday Jingle:
+  - enable/disable the jingle (disabled by default)
+  - sound channel: Master, Sound Effects, Music, Ambience or Dialog
+  - play in competitive content (dungeons, raids, battlegrounds, arenas, delves); when disabled the milestone is skipped rather than played back later
+  - test button to preview the sound without waiting for a milestone
+- fix playtime not advancing for the rest of the session on a newly created character, which also froze the playtime bar
+- note: World of Warcraft only indexes sound files when the client starts, so the jingle stays silent until the game has been fully restarted once after this update
+
 ## [1.1.3] - 2026-08-13
 - fix login crash ("attempt to call a nil value" in IsMaxLevel) that prevented the bar and the paragon list from initializing; the Blizzard helpers IsPlayerAtEffectiveMaxLevel and IsLevelAtEffectiveMaxLevel were removed in patch 12.1.0
 - update interface version for game patch 12.1.0

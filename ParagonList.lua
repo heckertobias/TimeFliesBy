@@ -9,18 +9,6 @@ local WIDTH = 220
 
 local testMode = false
 
-local COMPETITIVE_INSTANCE_TYPES = {
-  party    = true, -- Dungeons
-  raid     = true, -- Raids
-  pvp      = true, -- Battlegrounds
-  arena    = true, -- Arenas
-  scenario = true, -- Delves & Scenarios
-}
-
-local function isInCompetitiveContent()
-  local inInstance, instanceType = IsInInstance()
-  return inInstance and COMPETITIVE_INSTANCE_TYPES[instanceType] == true
-end
 local TEST_REWARDS = {
   { name = "The Nightfallen",    r = 0.18, g = 0.58, b = 0.78 },
   { name = "Court of Farondis", r = 0.72, g = 0.53, b = 0.26 },
@@ -118,7 +106,7 @@ function tfb.ParagonList:Refresh()
     return
   end
 
-  if tfb.db:GetParagonListHideInCompetitive() and isInCompetitiveContent() then
+  if tfb.db:GetParagonListHideInCompetitive() and tfb.instance:IsInCompetitiveContent() then
     container:Hide()
     return
   end
