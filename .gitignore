@@ -142,3 +142,7 @@ $RECYCLE.BIN/
 ### Python (tools/generate_jingle.py) ###
 __pycache__/
 *.py[cod]
+
+### Claude Code ###
+# Personal permissions and overrides, not shared with the repo.
+.claude/settings.local.json
