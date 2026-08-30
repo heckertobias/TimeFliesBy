@@ -18,6 +18,7 @@
     "SlashCmdList",
     "DEFAULT_CHAT_FRAME",
     "MainStatusTrackingBarContainer",
+    "UIWidgetTopCenterContainerFrame",
     "ReputationFrame",
     "StatusTrackingBarManager",
     "GameRulesUtil",

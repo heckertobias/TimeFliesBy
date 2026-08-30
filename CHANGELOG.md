@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.3.1] - 2026-08-30
+- fix Blizzard's top center widgets (battleground objectives, capture bars) overlapping the bar when the "Top" position preset is used; they are now pushed down below the bar and its text lines, and move back up automatically when the bar is hidden or positioned elsewhere
+
 ## [1.3.0] - 2026-08-30
 - add Journey progress to the bar: Journey tracks from the Adventure Guide (Delves: Season N, Preyhunter's Journey) now show up like reputation, skill and housing gains. They live outside the reputation panel and were never picked up before
 - Journey tracks are detected generically, so future seasons and new Journeys work without an addon update

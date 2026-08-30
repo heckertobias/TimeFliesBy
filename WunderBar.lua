@@ -37,6 +37,65 @@ local function HideBlizzStatusBar()
   StatusTrackingBarManager:UnregisterAllEvents()
 end
 
+-- Blizzard's top center widget container (battleground objectives, capture bars)
+-- is anchored right below the screen edge and collides with the bar when the
+-- "Top" preset is active. Push it down past the bar and its text lines.
+local TEXT_LINE_HEIGHT = 12
+local TOP_WIDGET_PADDING = 4
+local TOP_WIDGET_DEFAULT_DROP = 15
+
+local topWidgetAnchor
+local applyingTopWidget = false
+
+-- Distance from the screen top down to the lowest part of our bar (0 if hidden).
+local function GetTopOccupiedHeight()
+  if not bar:IsShown() then return 0 end
+
+  local yOffset = tfb.db:GetYOffset() or 0
+  local depth = -yOffset + tfb.db:GetBarHeight()
+
+  if text1:IsShown() then
+    local textDepth = depth + (text2:IsShown() and 16 or 2) + TEXT_LINE_HEIGHT
+    if not tfb.db:GetTextFollowsOffset() then
+      -- Text keeps its original screen position while the bar moves
+      textDepth = textDepth + yOffset
+    end
+    depth = math.max(depth, textDepth)
+  end
+
+  return depth
+end
+
+local function ShiftTopCenterWidgets()
+  local frame = UIWidgetTopCenterContainerFrame
+  if not frame or applyingTopWidget then return end
+
+  if tfb.db:GetPositionPreset() ~= 1 then
+    if topWidgetAnchor then
+      applyingTopWidget = true
+      frame:ClearAllPoints()
+      frame:SetPoint(topWidgetAnchor[1], topWidgetAnchor[2], topWidgetAnchor[3],
+        topWidgetAnchor[4], topWidgetAnchor[5])
+      applyingTopWidget = false
+      topWidgetAnchor = nil
+    end
+    return
+  end
+
+  if not topWidgetAnchor then
+    local point, relativeTo, relativePoint, x, y = frame:GetPoint(1)
+    if point then
+      topWidgetAnchor = { point, relativeTo or UIParent, relativePoint or point, x or 0, y or 0 }
+    end
+  end
+
+  local drop = math.max(TOP_WIDGET_DEFAULT_DROP, GetTopOccupiedHeight() + TOP_WIDGET_PADDING)
+  applyingTopWidget = true
+  frame:ClearAllPoints()
+  frame:SetPoint("TOP", UIParent, "TOP", 0, -drop)
+  applyingTopWidget = false
+end
+
 local function updateText(fontString, text)
   if text then
     fontString:SetText(text)
@@ -49,6 +108,7 @@ end
 function tfb.WunderBar:SetText(str1, str2)
   updateText(text1, str1)
   updateText(text2, str2)
+  ShiftTopCenterWidgets()
 end
 
 function tfb.WunderBar:SetValues(max, value1, value2)
@@ -68,6 +128,7 @@ function tfb.WunderBar:SetValues(max, value1, value2)
     bar:Hide()
     bar2:Hide()
   end
+  ShiftTopCenterWidgets()
 end
 
 function tfb.WunderBar:SetBar1Color(r, g, b)
@@ -176,12 +237,15 @@ function tfb.WunderBar:Reposition()
       bar:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
     end
     positionText(tfb.db:GetTextPosition(), tfb.db:GetTextAlignment())
+    ShiftTopCenterWidgets()
     return
   end
 
   -- Disable movable for presets 1-3
   bar:SetMovable(false)
   bar:EnableMouse(false)
+
+  ShiftTopCenterWidgets()
 end
 
 function tfb.WunderBar:SetLocked(locked)
@@ -211,7 +275,13 @@ end)
 bar:RegisterEvent("PLAYER_LOGIN")
 bar:SetScript("OnEvent", function(self, event, ...)
   if event == "PLAYER_LOGIN" then
+    -- Blizzard may re-anchor the container on its own (layout changes, other addons)
+    if UIWidgetTopCenterContainerFrame then
+      hooksecurefunc(UIWidgetTopCenterContainerFrame, "SetPoint", ShiftTopCenterWidgets)
+    end
     tfb.WunderBar:Reposition()
+    -- Re-apply after zone changes (entering a battleground rebuilds the widgets)
+    tfb.events:Register("PLAYER_ENTERING_WORLD", "WunderBarTopWidgets", ShiftTopCenterWidgets)
     -- Enable movable for preset 4
     if tfb.db:GetPositionPreset() == 4 then
       local locked = tfb.db:GetFreePositionLocked()
