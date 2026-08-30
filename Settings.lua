@@ -264,6 +264,26 @@ blizzExpCheckbox:SetScript("OnClick", function(self)
 end)
 
 -- ============================================
+-- Track Journey Progress (always visible)
+-- ============================================
+
+local journeyCheckbox = CreateFrame("CheckButton", nil, panel, "UICheckButtonTemplate")
+journeyCheckbox:SetPoint("TOPLEFT", blizzExpDesc, "BOTTOMLEFT", -28, -20)
+
+local journeyLabel = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+journeyLabel:SetPoint("LEFT", journeyCheckbox, "RIGHT", 2, 0)
+journeyLabel:SetText("Track Journey Progress")
+
+local journeyDesc = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+journeyDesc:SetPoint("TOPLEFT", journeyCheckbox, "BOTTOMLEFT", 26, -2)
+journeyDesc:SetText("Also show progress for Journey tracks from the Adventure Guide\n(Delves Season, Preyhunter's Journey, ...).")
+journeyDesc:SetJustifyH("LEFT")
+
+journeyCheckbox:SetScript("OnClick", function(self)
+  tfb.db:SetTrackJourneyProgress(self:GetChecked())
+end)
+
+-- ============================================
 -- Visibility toggling
 -- ============================================
 
@@ -312,6 +332,7 @@ panel:SetScript("OnShow", function()
   textFollowsCheckbox:SetChecked(tfb.db:GetTextFollowsOffset())
   lockCheckbox:SetChecked(tfb.db:GetFreePositionLocked())
   blizzExpCheckbox:SetChecked(tfb.db:GetUseBlizzardExpBar())
+  journeyCheckbox:SetChecked(tfb.db:GetTrackJourneyProgress())
   updateControlVisibility()
 end)
 

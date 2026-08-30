@@ -7,7 +7,10 @@ local specialBarVisibleTime = 60
 
 local alternativeWatch = 0
 local function updateMaxLvlBar(event, ...)
-  if event == "UPDATE_FACTION" then
+  -- MAJOR_FACTION_RENOWN_LEVEL_CHANGED is a second trigger for journey tracks,
+  -- which are not part of the reputation list. GetReputationChange() polls all
+  -- sources anyway, so the event only decides when to look.
+  if event == "UPDATE_FACTION" or event == "MAJOR_FACTION_RENOWN_LEVEL_CHANGED" then
     local faction = tfb.reputation:GetReputationChange()
     if faction ~= nil then
       WunderBar:SetBar1Color(faction.GetColor())
@@ -61,6 +64,7 @@ local function initMaxLvlBar()
   C_Timer.NewTicker(5, updateMaxLvlBar)
   tfb.reputation:GetReputationChange() -- init
   tfb.events:Register("UPDATE_FACTION", "maxLvlBar", updateMaxLvlBar)
+  tfb.events:Register("MAJOR_FACTION_RENOWN_LEVEL_CHANGED", "maxLvlBar", updateMaxLvlBar)
   tfb.events:Register("CHAT_MSG_SKILL", "maxLvlBar", updateMaxLvlBar)
   tfb.events:Register("HOUSE_LEVEL_FAVOR_UPDATED", "maxLvlBar", updateMaxLvlBar)
 end
@@ -252,6 +256,7 @@ local function onExpansionLevelChanged()
   -- Switch back to exp bar if player is no longer max level
   if not tfb.character:IsMaxLevel() then
     tfb.events:Unregister("UPDATE_FACTION", "maxLvlBar")
+    tfb.events:Unregister("MAJOR_FACTION_RENOWN_LEVEL_CHANGED", "maxLvlBar")
     tfb.events:Unregister("CHAT_MSG_SKILL", "maxLvlBar")
     tfb.events:Unregister("HOUSE_LEVEL_FAVOR_UPDATED", "maxLvlBar")
     initExpBar()

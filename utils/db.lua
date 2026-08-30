@@ -199,6 +199,17 @@ function tfb.db:SetUseBlizzardExpBar(value)
   TimeFliesByDB["useBlizzardExpBar"] = value
 end
 
+function tfb.db:GetTrackJourneyProgress()
+  if TimeFliesByDB["trackJourneyProgress"] == nil then
+    return true
+  end
+  return TimeFliesByDB["trackJourneyProgress"]
+end
+
+function tfb.db:SetTrackJourneyProgress(value)
+  TimeFliesByDB["trackJourneyProgress"] = value
+end
+
 function tfb.db:GetBarHeight()
   return TimeFliesByDB["barHeight"] or 5
 end

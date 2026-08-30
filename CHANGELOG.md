@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.3.0] - 2026-08-30
+- add Journey progress to the bar: Journey tracks from the Adventure Guide (Delves: Season N, Preyhunter's Journey) now show up like reputation, skill and housing gains. They live outside the reputation panel and were never picked up before
+- Journey tracks are detected generically, so future seasons and new Journeys work without an addon update
+- add setting under /tfb: "Track Journey Progress" (enabled by default)
+
 ## [1.2.0] - 2026-08-17
 - add birthday jingle: plays a short chiptune "Happy Birthday" tune whenever a character completes another full day of total time played (every 24 hours)
 - the jingle works in every bar mode, including while leveling
