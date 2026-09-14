@@ -54,9 +54,14 @@ local function normalizeFaction(factionData)
       if friendshipData and friendshipData.friendshipFactionID > 0 then
         name = friendshipData.name or factionData.name
         standing = friendshipData.reaction or ""
-        current = friendshipData.standing - (friendshipData.reactionThreshold or 0)
-        max = friendshipData.nextThreshold and (friendshipData.nextThreshold - friendshipData.reactionThreshold) or 1
         currentValue = friendshipData.standing
+        if friendshipData.nextThreshold then
+          current = friendshipData.standing - (friendshipData.reactionThreshold or 0)
+          max = friendshipData.nextThreshold - (friendshipData.reactionThreshold or 0)
+        else
+          -- Highest rank reached: the API stops reporting a next threshold.
+          current, max = 0, 0
+        end
         r, g, b = tfb.colors:GetFriendshipColor()
       end
 
@@ -92,8 +97,9 @@ local function normalizeFaction(factionData)
 end
 
 -- Updates the cache for one faction and returns the change payload.
--- Returns nil when nothing changed or when the faction is seen for the first
--- time - the first sighting only primes the cache.
+-- Returns nil when nothing changed, when the faction is seen for the first time
+-- (the first sighting only primes the cache) or when the faction sits at max
+-- standing.
 local function checkChange(factionID, name, standing, current, max, currentValue, r, g, b)
   if not currentValue then
     return nil
@@ -105,6 +111,13 @@ local function checkChange(factionID, name, standing, current, max, currentValue
     -- Faction exists in cache - check for change
     if cached ~= currentValue then
       repCache[factionID] = currentValue
+
+      -- Cache first, report second: a faction at max standing has no progress
+      -- left to show, so it must not take the bar over. Its cache still has to
+      -- follow along, otherwise a later paragon gain would look unchanged.
+      if not max or max <= 0 then
+        return nil
+      end
 
       return {
         name = name,

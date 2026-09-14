@@ -12,17 +12,13 @@ local function updateMaxLvlBar(event, ...)
   -- sources anyway, so the event only decides when to look.
   if event == "UPDATE_FACTION" or event == "MAJOR_FACTION_RENOWN_LEVEL_CHANGED" then
     local faction = tfb.reputation:GetReputationChange()
-    if faction ~= nil then
+    -- reputation.lua reports nothing for factions at max standing, so max is
+    -- always > 0 here - the guard only keeps a bad API value off the bar.
+    if faction ~= nil and faction.max and faction.max > 0 then
       WunderBar:SetBar1Color(faction.GetColor())
-      if faction.max and faction.max > 0 then
-        WunderBar:SetValues(faction.max, faction.current)
-        local perc = floor((faction.current / faction.max) * 100)
-        WunderBar:SetText(string.format("%s - %d / %d (%d%%)", faction.name, faction.current, faction.max, perc), faction.standing)
-      else
-        -- Max standing reached (e.g. Exalted): full bar, no raw 0/0 numbers
-        WunderBar:SetValues(1, 1)
-        WunderBar:SetText(string.format("%s - %s", faction.name, faction.standing))
-      end
+      WunderBar:SetValues(faction.max, faction.current)
+      local perc = floor((faction.current / faction.max) * 100)
+      WunderBar:SetText(string.format("%s - %d / %d (%d%%)", faction.name, faction.current, faction.max, perc), faction.standing)
       alternativeWatch = time() + specialBarVisibleTime
     end
   end

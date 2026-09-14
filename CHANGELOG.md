@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.3.2] - 2026-09-14
+- fix friendship factions at their highest rank (e.g. Captain Tokka, new in patch 12.1.0) showing nonsense progress like "9000 / 1 (900000%)" on every reputation update; the game stops reporting a next threshold at max rank, which the addon mistook for a one-point bar
+- factions at max standing no longer take the bar over at all: reputation gains that cannot advance any further leave the playtime display untouched instead of showing a full bar for 60 seconds
+
 ## [1.3.1] - 2026-08-30
 - fix Blizzard's top center widgets (battleground objectives, capture bars) overlapping the bar when the "Top" position preset is used; they are now pushed down below the bar and its text lines, and move back up automatically when the bar is hidden or positioned elsewhere
 
