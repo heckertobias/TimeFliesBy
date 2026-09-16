@@ -108,9 +108,12 @@ local function checkChange(factionID, name, standing, current, max, currentValue
   local cached = repCache[factionID]
 
   if cached then
-    -- Faction exists in cache - check for change
-    if cached ~= currentValue then
-      repCache[factionID] = currentValue
+    -- Faction exists in cache - check for change.
+    -- The standing is compared too: on a renown level-up UPDATE_FACTION can
+    -- report the new value with the old level, and the follow-up
+    -- MAJOR_FACTION_RENOWN_LEVEL_CHANGED only changes the level.
+    if cached.value ~= currentValue or cached.standing ~= standing then
+      repCache[factionID] = { value = currentValue, standing = standing }
 
       -- Cache first, report second: a faction at max standing has no progress
       -- left to show, so it must not take the bar over. Its cache still has to
@@ -130,7 +133,7 @@ local function checkChange(factionID, name, standing, current, max, currentValue
     end
   else
     -- Faction not yet in cache - just initialize it
-    repCache[factionID] = currentValue
+    repCache[factionID] = { value = currentValue, standing = standing }
   end
 
   return nil
