@@ -44,16 +44,86 @@ local function parseGameVersion(versionString)
   return major, minor, patch
 end
 
+-- World of Warcraft: Forever runs the retail API (the full set of C_* namespaces)
+-- on Vanilla content, but reports a Vanilla-era interface number: client 1.60.1
+-- -> 16001, while retail sits at 100000+. It also has its own project ID (18),
+-- which tells it apart from the Classic clients that share the low interface
+-- range.
+local FOREVER_MAX_INTERFACE = 100000
+local FOREVER_PROJECT_ID = 18
+
+-- Forever has no expansions, so playtime is bucketed per content patch instead.
+-- The bucket key is the interface number with the build digits cut off
+-- (16001 -> 16000), which keeps 1.60.0 and 1.60.1 in the same bucket and can
+-- never collide with the expansion levels 0-11 used on retail.
+local PATCH_KEY_MIN = 10000
+
+local foreverChecked = false
+local isForever = false
+local foreverPatchKey
+
+local function detectForever()
+  if foreverChecked then
+    return
+  end
+  foreverChecked = true
+
+  local _, _, _, interfaceVersion = GetBuildInfo()
+  if not interfaceVersion or interfaceVersion >= FOREVER_MAX_INTERFACE then
+    return
+  end
+
+  -- Nil-guarded: the project constant is absent on some clients, and an
+  -- interface number below the retail range already implies Forever there.
+  if WOW_PROJECT_ID and WOW_PROJECT_ID ~= FOREVER_PROJECT_ID then
+    return
+  end
+
+  isForever = true
+  foreverPatchKey = math.floor(interfaceVersion / 100) * 100
+end
+
+function tfb.gameVersion:IsForever()
+  detectForever()
+  return isForever
+end
+
+-- Renown, Journey tracks and Paragon reputations are Legion/Dragonflight+
+-- systems. Their APIs exist on Forever (it is the retail client) but never
+-- return data, so the features are gated instead of nil-guarded.
+function tfb.gameVersion:HasModernFactionSystems()
+  return not tfb.gameVersion:IsForever()
+end
+
+-- Weapon skills (and Defense) were removed from retail in Cataclysm; Forever
+-- brings them back.
+function tfb.gameVersion:HasWeaponSkills()
+  return tfb.gameVersion:IsForever()
+end
+
+function tfb.gameVersion:HasHousing()
+  return not tfb.gameVersion:IsForever()
+end
+
+-- Returns the expansion level on retail, or the patch bucket key on Forever.
 function tfb.gameVersion:GetCurrentExpansionLevel()
+  if tfb.gameVersion:IsForever() then
+    return foreverPatchKey
+  end
+
   return GetExpansionLevel()
 end
 
 function tfb.gameVersion:GetExpansionNameByLevel(level)
+  if level and level >= PATCH_KEY_MIN then
+    return string.format("Forever Patch %d.%d", math.floor(level / 10000), math.floor(level / 100) % 100)
+  end
+
   return expansionLevelMap[level] or "Unknown"
 end
 
 function tfb.gameVersion:GetCurrentExpansionName()
-  return tfb.gameVersion:GetExpansionNameByLevel(GetExpansionLevel())
+  return tfb.gameVersion:GetExpansionNameByLevel(tfb.gameVersion:GetCurrentExpansionLevel())
 end
 
 -- Legacy: used for migration of old version-string-based DB entries

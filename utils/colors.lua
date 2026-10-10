@@ -18,6 +18,10 @@ function tfb.colors:GetProfessionColor()
   return 0.89, 0.59, 0.15
 end
 
+function tfb.colors:GetWeaponSkillColor()
+  return 0.6, 0.65, 0.75
+end
+
 function tfb.colors:GetFriendshipColor()
   return 0.0, 1.0, 0.5
 end

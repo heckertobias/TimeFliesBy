@@ -210,6 +210,104 @@ function tfb.db:SetTrackJourneyProgress(value)
   TimeFliesByDB["trackJourneyProgress"] = value
 end
 
+function tfb.db:GetTrackReputation()
+  if TimeFliesByDB["trackReputation"] == nil then
+    return true
+  end
+  return TimeFliesByDB["trackReputation"]
+end
+
+function tfb.db:SetTrackReputation(value)
+  TimeFliesByDB["trackReputation"] = value
+end
+
+function tfb.db:GetTrackProfessions()
+  if TimeFliesByDB["trackProfessions"] == nil then
+    return true
+  end
+  return TimeFliesByDB["trackProfessions"]
+end
+
+function tfb.db:SetTrackProfessions(value)
+  TimeFliesByDB["trackProfessions"] = value
+end
+
+function tfb.db:GetTrackWeaponSkills()
+  if TimeFliesByDB["trackWeaponSkills"] == nil then
+    return true
+  end
+  return TimeFliesByDB["trackWeaponSkills"]
+end
+
+function tfb.db:SetTrackWeaponSkills(value)
+  TimeFliesByDB["trackWeaponSkills"] = value
+end
+
+function tfb.db:GetTrackHousing()
+  if TimeFliesByDB["trackHousing"] == nil then
+    return true
+  end
+  return TimeFliesByDB["trackHousing"]
+end
+
+function tfb.db:SetTrackHousing(value)
+  TimeFliesByDB["trackHousing"] = value
+end
+
+-- Seconds a progress gain stays on the bar before the playtime bar returns.
+function tfb.db:GetProgressDuration()
+  return TimeFliesByDB["progressDuration"] or 60
+end
+
+function tfb.db:SetProgressDuration(seconds)
+  TimeFliesByDB["progressDuration"] = seconds
+end
+
+function tfb.db:GetShowProgressWhileLeveling()
+  if TimeFliesByDB["showProgressWhileLeveling"] == nil then
+    return true
+  end
+  return TimeFliesByDB["showProgressWhileLeveling"]
+end
+
+function tfb.db:SetShowProgressWhileLeveling(value)
+  TimeFliesByDB["showProgressWhileLeveling"] = value
+end
+
+-- Seconds a progress gain stays on the bar before the XP bar returns.
+function tfb.db:GetLevelingProgressDuration()
+  return TimeFliesByDB["levelingProgressDuration"] or 60
+end
+
+function tfb.db:SetLevelingProgressDuration(seconds)
+  TimeFliesByDB["levelingProgressDuration"] = seconds
+end
+
+-- Optional per-source override of the display duration, separately for max
+-- level (playtime bar) and leveling (XP bar). nil means the source follows the
+-- duration of the mode.
+-- source: "reputation", "professions", "weaponSkills", "housing", "journey"
+local function sourceDurationKey(source, leveling)
+  return (leveling and "levelingProgressDuration_" or "progressDuration_") .. source
+end
+
+function tfb.db:GetSourceDuration(source, leveling)
+  return TimeFliesByDB[sourceDurationKey(source, leveling)]
+end
+
+function tfb.db:SetSourceDuration(source, leveling, seconds)
+  TimeFliesByDB[sourceDurationKey(source, leveling)] = seconds
+end
+
+-- LibDBIcon keeps its own state (hide flag, minimap angle) in the table it is
+-- handed, so this one setting is a subtable rather than a flat key.
+function tfb.db:GetMinimapIconDB()
+  if not TimeFliesByDB["minimapIcon"] then
+    TimeFliesByDB["minimapIcon"] = {}
+  end
+  return TimeFliesByDB["minimapIcon"]
+end
+
 function tfb.db:GetBarHeight()
   return TimeFliesByDB["barHeight"] or 5
 end

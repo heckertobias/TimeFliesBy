@@ -5,6 +5,10 @@ tfb.housing = {}
 local favorCache = {}
 
 function tfb.housing:GetHousingChange(houseLevel, houseFavor, houseGUID)
+  if not tfb.gameVersion:HasHousing() then
+    return nil
+  end
+
   if not houseLevel or not houseFavor then
     return nil
   end

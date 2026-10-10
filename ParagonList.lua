@@ -2,6 +2,17 @@ local _, tfb = ...
 
 tfb.ParagonList = {}
 
+-- Paragon reputations do not exist on Forever, so the list would never have
+-- anything to show. Stub it out before any frame or settings panel is built,
+-- which also keeps the subcategory out of the settings tree there.
+if not tfb.gameVersion:HasModernFactionSystems() then
+  function tfb.ParagonList:Refresh() end
+  function tfb.ParagonList:Reposition() end
+  function tfb.ParagonList:SetTestMode() end
+  function tfb.ParagonList:SetLocked() end
+  return
+end
+
 local PADDING = 6
 local HEADER_HEIGHT = 18
 local ENTRY_HEIGHT = 14

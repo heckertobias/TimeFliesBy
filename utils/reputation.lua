@@ -43,8 +43,10 @@ end
 local function normalizeFaction(factionData)
   local name, standing, current, max, currentValue, r, g, b
 
+  local hasModernFactions = tfb.gameVersion:HasModernFactionSystems()
+
   -- 1. Renown (Major Factions)
-  if C_Reputation.IsMajorFaction(factionData.factionID) then
+  if hasModernFactions and C_Reputation.IsMajorFaction(factionData.factionID) then
     name, standing, current, max, currentValue, r, g, b = normalizeMajorFaction(factionData.factionID, false)
 
     -- 2. Friendship
@@ -80,7 +82,7 @@ local function normalizeFaction(factionData)
     end
   end
 
-  if C_Reputation.IsFactionParagonForCurrentPlayer(factionData.factionID) then
+  if hasModernFactions and C_Reputation.IsFactionParagonForCurrentPlayer(factionData.factionID) then
     local currentValue_paragon, threshold, _, hasRewardPending = C_Reputation.GetFactionParagonInfo(factionData.factionID)
     if currentValue_paragon and threshold then
       standing = "Paragon"
@@ -147,6 +149,10 @@ local function collectJourneyFactionIDs()
   local ids = {}
   local seen = {}
 
+  if not tfb.gameVersion:HasModernFactionSystems() then
+    return ids
+  end
+
   local function add(factionID)
     if factionID and factionID > 0 and not seen[factionID] then
       seen[factionID] = true
@@ -180,8 +186,10 @@ function tfb.reputation:GetReputationChange()
     if factionData and factionData.factionID then
       visited[factionData.factionID] = true
 
+      -- Same cache-but-don't-report rule as for journey tracks below.
       local change = checkChange(factionData.factionID, normalizeFaction(factionData))
-      if change then
+      if change and tfb.db:GetTrackReputation() then
+        change.source = "reputation"
         return change
       end
     end
@@ -196,6 +204,7 @@ function tfb.reputation:GetReputationChange()
       -- setting is turned on, because a first sighting only primes.
       local change = checkChange(factionID, normalizeMajorFaction(factionID, true))
       if change and tfb.db:GetTrackJourneyProgress() then
+        change.source = "journey"
         return change
       end
     end
@@ -206,6 +215,10 @@ end
 
 function tfb.reputation:GetParagonRewards()
   local rewards = {}
+
+  if not tfb.gameVersion:HasModernFactionSystems() then
+    return rewards
+  end
 
   for i = 1, C_Reputation.GetNumFactions() do
     local factionData = C_Reputation.GetFactionDataByIndex(i)

@@ -264,23 +264,18 @@ blizzExpCheckbox:SetScript("OnClick", function(self)
 end)
 
 -- ============================================
--- Track Journey Progress (always visible)
+-- Show Minimap Icon (always visible)
 -- ============================================
 
-local journeyCheckbox = CreateFrame("CheckButton", nil, panel, "UICheckButtonTemplate")
-journeyCheckbox:SetPoint("TOPLEFT", blizzExpDesc, "BOTTOMLEFT", -28, -20)
+local minimapCheckbox = CreateFrame("CheckButton", nil, panel, "UICheckButtonTemplate")
+minimapCheckbox:SetPoint("TOPLEFT", blizzExpDesc, "BOTTOMLEFT", -28, -20)
 
-local journeyLabel = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-journeyLabel:SetPoint("LEFT", journeyCheckbox, "RIGHT", 2, 0)
-journeyLabel:SetText("Track Journey Progress")
+local minimapLabel = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+minimapLabel:SetPoint("LEFT", minimapCheckbox, "RIGHT", 2, 0)
+minimapLabel:SetText("Show Minimap Icon")
 
-local journeyDesc = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-journeyDesc:SetPoint("TOPLEFT", journeyCheckbox, "BOTTOMLEFT", 26, -2)
-journeyDesc:SetText("Also show progress for Journey tracks from the Adventure Guide\n(Delves Season, Preyhunter's Journey, ...).")
-journeyDesc:SetJustifyH("LEFT")
-
-journeyCheckbox:SetScript("OnClick", function(self)
-  tfb.db:SetTrackJourneyProgress(self:GetChecked())
+minimapCheckbox:SetScript("OnClick", function(self)
+  tfb.MinimapIcon:SetShown(self:GetChecked())
 end)
 
 -- ============================================
@@ -332,7 +327,7 @@ panel:SetScript("OnShow", function()
   textFollowsCheckbox:SetChecked(tfb.db:GetTextFollowsOffset())
   lockCheckbox:SetChecked(tfb.db:GetFreePositionLocked())
   blizzExpCheckbox:SetChecked(tfb.db:GetUseBlizzardExpBar())
-  journeyCheckbox:SetChecked(tfb.db:GetTrackJourneyProgress())
+  minimapCheckbox:SetChecked(tfb.MinimapIcon:IsShown())
   updateControlVisibility()
 end)
 

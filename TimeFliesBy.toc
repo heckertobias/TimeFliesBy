@@ -1,10 +1,15 @@
-## Interface: 120100
+## Interface: 16001, 120100
 ## Title: Time Flies By
 ## Notes: Track your time played over alts and expansions.
 ## Author: Zyx <heckertobias@googlemail.com>
-## Version: 1.3.3
+## Version: 1.4.0
 ## IconTexture: Interface\AddOns\TimeFliesBy\media\icon
 ## SavedVariables: TimeFliesByDB
+
+libs\LibStub\LibStub.lua
+libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+libs\LibDBIcon-1.0\LibDBIcon-1.0.lua
 
 utils\character.lua
 utils\colors.lua
@@ -20,6 +25,8 @@ utils\housing.lua
 
 WunderBar.lua
 Settings.lua
+BarContent.lua
 ParagonList.lua
 BirthdayJingle.lua
+MinimapIcon.lua
 TimeFliesBy.lua

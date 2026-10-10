@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.4.0] - 2026-10-10
+- add support for World of Warcraft: Forever (interface 16001); playtime is tracked per content patch (e.g. "Forever Patch 1.60") since Forever has no expansions
+- Forever: weapon skills (incl. Defense and Feral Combat) show up on the bar in their own color, and profession progress uses the real skill cap from the skill window
+- Forever: renown, paragon, journey and housing features are hidden, since they do not exist there
+- add settings page /tfb > Bar Content: choose which sources may take over the bar (reputation, professions, weapon skills, housing, journey) and how long a gain stays visible (5-300 s, default 60 s)
+- progress gains can now also replace the XP bar while leveling (can be turned off, with its own duration)
+- every source can override both durations individually
+- add minimap icon: left click opens the settings, tooltip shows playtime; can be hidden under /tfb
+- "Track Journey Progress" moved from the main settings page to Bar Content
+
 ## [1.3.3] - 2026-09-16
 - fix the bar showing the previous renown level after a level-up (e.g. "Renown 17" although level 18 was just reached); the game reports the new reputation value before the new level, and the follow-up update that only changed the level was ignored. The bar now also refreshes when only the level or rank changes
 

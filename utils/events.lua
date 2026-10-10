@@ -26,17 +26,26 @@ local function getEventId(name, event)
   end
 end
 
+-- Registering an event the client does not know throws. Forever runs the retail
+-- API on Vanilla content, so retail-only events can be missing there; a failed
+-- registration drops the callback silently instead of erroring out the caller.
 function tfb.events:Register(event, name, callback)
+  local index = reg[event] and getEventId(name, event)
+  if index then
+    if callback then
+      reg[event][index][2] = callback
+    end
+    return
+  end
+
   if not reg[event] then
+    if not pcall(events.RegisterEvent, events, event) then
+      return
+    end
     reg[event] = {}
   end
-  local index = getEventId(name, event)
-  if not index then
-    tinsert(reg[event], { name, callback })
-    events:RegisterEvent(event)
-  elseif callback then
-    reg[event][index][2] = callback
-  end
+
+  tinsert(reg[event], { name, callback })
 end
 
 function tfb.events:Unregister(event, name)

@@ -3,66 +3,136 @@ local _, tfb = ...
 local initialTimeChecked = false
 local WunderBar = tfb.WunderBar
 
-local specialBarVisibleTime = 60
+-- Which bar is currently the base display: "xp" while leveling, "playtime" at
+-- max level or when Blizzard's XP bar is used. Progress gains temporarily
+-- replace either one.
+local barMode
+local maxLvlTicker
 
-local alternativeWatch = 0
-local function updateMaxLvlBar(event, ...)
+-- GetTime() until which a progress gain stays on the bar.
+local progressVisibleUntil = 0
+
+local function isProgressVisible()
+  return progressVisibleUntil > GetTime()
+end
+
+-- Polls the source behind the event. Every source is polled even when it is not
+-- going to be shown, so its cache stays current and the first gain after a
+-- setting is turned on is not swallowed.
+local function getProgressChange(event, ...)
   -- MAJOR_FACTION_RENOWN_LEVEL_CHANGED is a second trigger for journey tracks,
   -- which are not part of the reputation list. GetReputationChange() polls all
-  -- sources anyway, so the event only decides when to look.
+  -- sources anyway, so the event only decides when to look. The reputation and
+  -- journey toggles are applied in there.
   if event == "UPDATE_FACTION" or event == "MAJOR_FACTION_RENOWN_LEVEL_CHANGED" then
-    local faction = tfb.reputation:GetReputationChange()
-    -- reputation.lua reports nothing for factions at max standing, so max is
-    -- always > 0 here - the guard only keeps a bad API value off the bar.
-    if faction ~= nil and faction.max and faction.max > 0 then
-      WunderBar:SetBar1Color(faction.GetColor())
-      WunderBar:SetValues(faction.max, faction.current)
-      local perc = floor((faction.current / faction.max) * 100)
-      WunderBar:SetText(string.format("%s - %d / %d (%d%%)", faction.name, faction.current, faction.max, perc), faction.standing)
-      alternativeWatch = time() + specialBarVisibleTime
-    end
+    return tfb.reputation:GetReputationChange()
   end
 
   if event == "CHAT_MSG_SKILL" then
     local message = ...
     local skill = tfb.skill:ParseSkillMsg(message)
-    if skill ~= nil then
-      WunderBar:SetBar1Color(skill.GetColor())
-      WunderBar:SetValues(skill.max, skill.current)
-      local perc = floor((skill.current / skill.max) * 100)
-      WunderBar:SetText(string.format("%s - %d / %d (%d%%)", skill.name, skill.current, skill.max, perc))
-      alternativeWatch = time() + specialBarVisibleTime
+    if not skill then
+      return nil
     end
+    if skill.isWeaponSkill then
+      skill.source = "weaponSkills"
+      return tfb.db:GetTrackWeaponSkills() and skill or nil
+    end
+    skill.source = "professions"
+    return tfb.db:GetTrackProfessions() and skill or nil
   end
 
   if event == "HOUSE_LEVEL_FAVOR_UPDATED" then
     local houseLevelFavor = ...
     local housing = tfb.housing:GetHousingChange(houseLevelFavor.houseLevel, houseLevelFavor.houseFavor, houseLevelFavor.houseGUID)
-    if housing ~= nil then
-      WunderBar:SetBar1Color(housing.GetColor())
-      WunderBar:SetValues(housing.max, housing.current)
-      local perc = floor((housing.current / housing.max) * 100)
-      WunderBar:SetText(string.format("%s - %d / %d (%d%%)", housing.name, housing.current, housing.max, perc), "Level " .. housing.level)
-      alternativeWatch = time() + specialBarVisibleTime
+    if housing and tfb.db:GetTrackHousing() then
+      housing.standing = "Level " .. housing.level
+      housing.source = "housing"
+      return housing
     end
+    return nil
   end
 
-  if (alternativeWatch < time()) then
-    local currentTime = tfb.db:GetCurrentPlayed(tfb.character:GetCharKey())
-    WunderBar:SetBar1Color(tfb.colors:GetClassColor(tfb.character:GetClassToken()))
-    WunderBar:SetValues(86400, currentTime % 86400)
-    WunderBar:SetText(tfb.chat:FormatPlaytime(currentTime))
+  return nil
+end
+
+local function showPlaytime()
+  local currentTime = tfb.db:GetCurrentPlayed(tfb.character:GetCharKey())
+  WunderBar:SetBar1Color(tfb.colors:GetClassColor(tfb.character:GetClassToken()))
+  WunderBar:SetValues(86400, currentTime % 86400)
+  WunderBar:SetText(tfb.chat:FormatPlaytime(currentTime))
+end
+
+local function updatePlaytimeBar()
+  if barMode ~= "playtime" or isProgressVisible() then
+    return
+  end
+  showPlaytime()
+end
+
+-- Assigned once the XP bar functions below exist.
+local updateXP
+
+local function onProgressGain(event, ...)
+  local progress = getProgressChange(event, ...)
+  -- reputation.lua reports nothing for factions at max standing, so max is
+  -- always > 0 here - the guard only keeps a bad API value off the bar.
+  if not progress or not progress.max or progress.max <= 0 then
+    return
+  end
+
+  local duration
+  if barMode == "xp" then
+    if not tfb.db:GetShowProgressWhileLeveling() then
+      return
+    end
+    duration = tfb.db:GetSourceDuration(progress.source, true) or tfb.db:GetLevelingProgressDuration()
+  elseif barMode == "playtime" then
+    duration = tfb.db:GetSourceDuration(progress.source, false) or tfb.db:GetProgressDuration()
+  else
+    return
+  end
+
+  WunderBar:SetBar1Color(progress.GetColor())
+  -- No third value: this hides the rested XP overlay while progress is shown.
+  WunderBar:SetValues(progress.max, progress.current)
+  local perc = floor((progress.current / progress.max) * 100)
+  WunderBar:SetText(string.format("%s - %d / %d (%d%%)", progress.name, progress.current, progress.max, perc), progress.standing)
+
+  progressVisibleUntil = GetTime() + duration
+
+  -- The playtime bar comes back on its own ticker. The XP bar is only redrawn on
+  -- XP events, so it needs a timer. Every gain starts its own timer; only the
+  -- one that fires after the latest deadline finds the window expired.
+  if barMode == "xp" then
+    C_Timer.After(duration, function()
+      if barMode == "xp" and not isProgressVisible() then
+        updateXP()
+      end
+    end)
+  end
+end
+
+local function initProgressTracking()
+  tfb.reputation:GetReputationChange() -- init
+  tfb.skill:Init()
+  tfb.events:Register("UPDATE_FACTION", "progressGain", onProgressGain)
+  tfb.events:Register("CHAT_MSG_SKILL", "progressGain", onProgressGain)
+  if tfb.gameVersion:HasModernFactionSystems() then
+    tfb.events:Register("MAJOR_FACTION_RENOWN_LEVEL_CHANGED", "progressGain", onProgressGain)
+  end
+  if tfb.gameVersion:HasHousing() then
+    tfb.events:Register("HOUSE_LEVEL_FAVOR_UPDATED", "progressGain", onProgressGain)
   end
 end
 
 local function initMaxLvlBar()
-  updateMaxLvlBar()
-  C_Timer.NewTicker(5, updateMaxLvlBar)
-  tfb.reputation:GetReputationChange() -- init
-  tfb.events:Register("UPDATE_FACTION", "maxLvlBar", updateMaxLvlBar)
-  tfb.events:Register("MAJOR_FACTION_RENOWN_LEVEL_CHANGED", "maxLvlBar", updateMaxLvlBar)
-  tfb.events:Register("CHAT_MSG_SKILL", "maxLvlBar", updateMaxLvlBar)
-  tfb.events:Register("HOUSE_LEVEL_FAVOR_UPDATED", "maxLvlBar", updateMaxLvlBar)
+  barMode = "playtime"
+  progressVisibleUntil = 0
+  showPlaytime()
+  if not maxLvlTicker then
+    maxLvlTicker = C_Timer.NewTicker(5, updatePlaytimeBar)
+  end
 end
 
 -- Rolling-window XP rate tracker.
@@ -133,7 +203,7 @@ local function checkPlayerReachedMaxLvl()
   return false
 end
 
-local function updateXP()
+updateXP = function()
   if checkPlayerReachedMaxLvl() then
     return
   end
@@ -141,9 +211,15 @@ local function updateXP()
   local xp = UnitXP("player")
   local max = UnitXPMax("player")
   local rested = GetXPExhaustion() or 0
-  WunderBar:SetValues(max, xp, xp + rested)
 
+  -- Always record, so the rate stays accurate while a progress gain is shown.
   local xpPerSec = recordXPAndGetRate(xp, max)
+  if isProgressVisible() then
+    return
+  end
+
+  WunderBar:SetBar1Color(tfb.colors:GetExpColor())
+  WunderBar:SetValues(max, xp, xp + rested)
   local timeTilNextLvlStr
   if xpPerSec and xpPerSec > 0 then
     local remaining = max - xp
@@ -168,7 +244,8 @@ local function updateXP()
 end
 
 local function initExpBar()
-  WunderBar:SetBar1Color(tfb.colors:GetExpColor())
+  barMode = "xp"
+  progressVisibleUntil = 0
   WunderBar:SetBar2Color(tfb.colors:GetRestedExpColor())
   updateXP()
 
@@ -178,6 +255,8 @@ local function initExpBar()
 end
 
 local function initWunderBar()
+  initProgressTracking()
+
   if tfb.db:GetUseBlizzardExpBar() then
     -- Blizzard handles XP, WunderBar shows playtime
     initMaxLvlBar()
@@ -194,9 +273,11 @@ end
 local function init()
   tfb.db:Migrate()
 
-  tfb.events:Register("UPDATE_FACTION", "paragonList", function()
-    tfb.ParagonList:Refresh()
-  end)
+  if tfb.gameVersion:HasModernFactionSystems() then
+    tfb.events:Register("UPDATE_FACTION", "paragonList", function()
+      tfb.ParagonList:Refresh()
+    end)
+  end
 
   -- we wait 3 seconds to check the played time
   -- this gives other addons time to do this for us
@@ -250,11 +331,7 @@ local function onExpansionLevelChanged()
   RaidNotice_AddMessage(RaidWarningFrame, "Time Flies By: Welcome to " .. expansionName .. "!", ChatTypeInfo["RAID_WARNING"])
 
   -- Switch back to exp bar if player is no longer max level
-  if not tfb.character:IsMaxLevel() then
-    tfb.events:Unregister("UPDATE_FACTION", "maxLvlBar")
-    tfb.events:Unregister("MAJOR_FACTION_RENOWN_LEVEL_CHANGED", "maxLvlBar")
-    tfb.events:Unregister("CHAT_MSG_SKILL", "maxLvlBar")
-    tfb.events:Unregister("HOUSE_LEVEL_FAVOR_UPDATED", "maxLvlBar")
+  if barMode == "playtime" and not tfb.db:GetUseBlizzardExpBar() and not tfb.character:IsMaxLevel() then
     initExpBar()
   end
 
