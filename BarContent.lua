@@ -124,11 +124,69 @@ end)
 levelingDurationSlider:SetPoint("TOPLEFT", levelingDurationLabel, "BOTTOMLEFT", 0, -20)
 
 -- ============================================
+-- Quest XP
+-- ============================================
+
+local questCheckbox = CreateFrame("CheckButton", nil, content, "UICheckButtonTemplate")
+questCheckbox:SetPoint("TOPLEFT", levelingDurationSlider, "BOTTOMLEFT", -2, -30)
+
+local questLabel = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+questLabel:SetPoint("LEFT", questCheckbox, "RIGHT", 2, 0)
+questLabel:SetText("Show Quest XP")
+
+local questDesc = content:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+questDesc:SetPoint("TOPLEFT", questCheckbox, "BOTTOMLEFT", 26, -2)
+questDesc:SetText("Shows the XP of the quests in your log on the XP bar, split into quests\nready to turn in and quests still in progress. The text gets its own line.")
+questDesc:SetJustifyH("LEFT")
+
+questCheckbox:SetScript("OnClick", function(self)
+  tfb.db:SetShowQuestXP(self:GetChecked())
+  tfb.RefreshXPBar()
+end)
+
+-- Sub-options for the two quest groups, indented below the main checkbox.
+local function createQuestGroupCheckbox(anchor, text, setValue)
+  local checkbox = CreateFrame("CheckButton", nil, content, "UICheckButtonTemplate")
+  checkbox:SetSize(24, 24)
+  checkbox:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -2)
+  local label = content:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+  label:SetPoint("LEFT", checkbox, "RIGHT", 2, 0)
+  label:SetText(text)
+  checkbox:SetScript("OnClick", function(self)
+    setValue(tfb.db, self:GetChecked())
+    tfb.RefreshXPBar()
+  end)
+  return checkbox
+end
+
+local questReadyCheckbox = createQuestGroupCheckbox(questDesc, "Quests Ready to Turn In", tfb.db.SetShowQuestXPReady)
+local questOpenCheckbox = createQuestGroupCheckbox(questReadyCheckbox, "Quests in Progress", tfb.db.SetShowQuestXPOpen)
+
+local questDisplayLabel = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+questDisplayLabel:SetPoint("TOPLEFT", questOpenCheckbox, "BOTTOMLEFT", -24, -16)
+questDisplayLabel:SetText("Quest XP Display")
+
+local questDisplayDropdown = CreateFrame("DropdownButton", nil, content, "WowStyle1DropdownTemplate")
+questDisplayDropdown:SetPoint("TOPLEFT", questDisplayLabel, "BOTTOMLEFT", 0, -5)
+questDisplayDropdown:SetWidth(200)
+questDisplayDropdown:SetupMenu(function(_, rootDescription)
+  local options = { { "both", "Bar and Text" }, { "bar", "Bar Only" }, { "text", "Text Only" } }
+  for _, opt in ipairs(options) do
+    rootDescription:CreateRadio(opt[2], function()
+      return tfb.db:GetQuestXPDisplay() == opt[1]
+    end, function()
+      tfb.db:SetQuestXPDisplay(opt[1])
+      tfb.RefreshXPBar()
+    end, opt[1])
+  end
+end)
+
+-- ============================================
 -- Tracked sources
 -- ============================================
 
 local trackLabel = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-trackLabel:SetPoint("TOPLEFT", levelingDurationSlider, "BOTTOMLEFT", 0, -30)
+trackLabel:SetPoint("TOPLEFT", questDisplayDropdown, "BOTTOMLEFT", 0, -30)
 trackLabel:SetText("Show Progress For")
 
 local trackDesc = content:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
@@ -269,6 +327,9 @@ settingsPanel:SetScript("OnShow", function()
   setSliderValue(durationSlider, tfb.db:GetProgressDuration())
   levelingCheckbox:SetChecked(tfb.db:GetShowProgressWhileLeveling())
   setSliderValue(levelingDurationSlider, tfb.db:GetLevelingProgressDuration())
+  questCheckbox:SetChecked(tfb.db:GetShowQuestXP())
+  questReadyCheckbox:SetChecked(tfb.db:GetShowQuestXPReady())
+  questOpenCheckbox:SetChecked(tfb.db:GetShowQuestXPOpen())
 
   for _, entry in ipairs(sources) do
     entry.track:SetChecked(entry.getTracked(tfb.db))

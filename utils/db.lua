@@ -299,6 +299,46 @@ function tfb.db:SetSourceDuration(source, leveling, seconds)
   TimeFliesByDB[sourceDurationKey(source, leveling)] = seconds
 end
 
+function tfb.db:GetShowQuestXP()
+  return TimeFliesByDB["showQuestXP"] == true
+end
+
+function tfb.db:SetShowQuestXP(value)
+  TimeFliesByDB["showQuestXP"] = value
+end
+
+-- Which quest groups the quest XP display includes.
+function tfb.db:GetShowQuestXPReady()
+  if TimeFliesByDB["showQuestXPReady"] == nil then
+    return true
+  end
+  return TimeFliesByDB["showQuestXPReady"]
+end
+
+function tfb.db:SetShowQuestXPReady(value)
+  TimeFliesByDB["showQuestXPReady"] = value
+end
+
+function tfb.db:GetShowQuestXPOpen()
+  if TimeFliesByDB["showQuestXPOpen"] == nil then
+    return true
+  end
+  return TimeFliesByDB["showQuestXPOpen"]
+end
+
+function tfb.db:SetShowQuestXPOpen(value)
+  TimeFliesByDB["showQuestXPOpen"] = value
+end
+
+-- "both", "bar" or "text"
+function tfb.db:GetQuestXPDisplay()
+  return TimeFliesByDB["questXPDisplay"] or "both"
+end
+
+function tfb.db:SetQuestXPDisplay(value)
+  TimeFliesByDB["questXPDisplay"] = value
+end
+
 -- LibDBIcon keeps its own state (hide flag, minimap angle) in the table it is
 -- handed, so this one setting is a subtable rather than a flat key.
 function tfb.db:GetMinimapIconDB()

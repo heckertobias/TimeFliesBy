@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.0] - 2026-10-16
+- add quest XP to the XP bar: shows how much XP the quests in your log will give once turned in, split into quests ready to turn in and quests still in progress
+- the bar shows them as two golden segments starting at your current XP, behind the rested XP segment
+- the text shows them on their own line ("Quests: +1800 (6%) | +1200 (4%)"); "Next Level in" moves to the third line while it is shown
+- bonus objectives and world quests are not counted, since they reward without a turn-in
+- add settings under /tfb > Bar Content: "Show Quest XP" (disabled by default), each of the two quest groups on its own, and whether to show bar and text, bar only or text only
+- the rested XP segment is no longer dimmed by the bar background
+
 ## [1.4.0] - 2026-10-10
 - add support for World of Warcraft: Forever (interface 16001); playtime is tracked per content patch (e.g. "Forever Patch 1.60") since Forever has no expansions
 - Forever: weapon skills (incl. Defense and Feral Combat) show up on the bar in their own color, and profession progress uses the real skill cap from the skill window

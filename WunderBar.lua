@@ -6,6 +6,9 @@ local bar = CreateFrame("StatusBar", "WunderBar", UIParent)
 bar:SetStatusBarTexture("Interface\\Buttons\\WHITE8X8")
 bar:SetPoint("TOP", UIParent, "TOP", 0, 0)
 bar:SetStatusBarColor(1, 1, 1)
+-- Room below the bar for, top to bottom: rested segment, quest XP segments and
+-- background.
+bar:SetFrameLevel(bar:GetFrameLevel() + 3)
 bar:Hide()
 
 local bar2 = CreateFrame("StatusBar", nil, bar)
@@ -15,8 +18,49 @@ bar2:SetFrameLevel(bar:GetFrameLevel() - 1)
 bar2:SetStatusBarColor(0.7, 0.7, 0.7)
 bar2:Hide()
 
-local bg = bar:CreateTexture(nil, "BACKGROUND")
-bg:SetAllPoints(bar)
+-- Quest XP segments. Like rested XP they start at the current XP, so they sit
+-- below the rested segment instead of being stacked behind it: rested XP stays
+-- in front, the quest segments show where they reach beyond it.
+local questFrame = CreateFrame("Frame", nil, bar)
+questFrame:SetAllPoints(bar)
+questFrame:SetFrameLevel(bar2:GetFrameLevel() - 1)
+questFrame:Hide()
+
+local questReady = questFrame:CreateTexture(nil, "ARTWORK")
+local questOpen = questFrame:CreateTexture(nil, "ARTWORK")
+
+-- Fractions of the bar width, kept so the segments follow size changes.
+local questSegments
+
+local function setSegment(texture, from, to)
+  local width = bar:GetWidth()
+  if to <= from or width <= 0 then
+    texture:Hide()
+    return
+  end
+  texture:ClearAllPoints()
+  texture:SetPoint("TOPLEFT", bar, "TOPLEFT", width * from, 0)
+  texture:SetPoint("BOTTOMLEFT", bar, "BOTTOMLEFT", width * from, 0)
+  texture:SetWidth(width * (to - from))
+  texture:Show()
+end
+
+local function layoutQuestSegments()
+  if not questSegments then return end
+  setSegment(questReady, questSegments.xp, questSegments.ready)
+  setSegment(questOpen, questSegments.ready, questSegments.open)
+end
+
+bar:HookScript("OnSizeChanged", layoutQuestSegments)
+
+-- The background sits on its own frame below everything else, so it dims
+-- neither the rested nor the quest XP segments.
+local bgFrame = CreateFrame("Frame", nil, bar)
+bgFrame:SetAllPoints(bar)
+bgFrame:SetFrameLevel(questFrame:GetFrameLevel() - 1)
+
+local bg = bgFrame:CreateTexture(nil, "BACKGROUND")
+bg:SetAllPoints(bgFrame)
 bg:SetColorTexture(0, 0, 0, 0.5)
 
 local text1 = bar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -29,6 +73,26 @@ text2:SetPoint("TOP", bar, "BOTTOM", 0, -16)
 text2:SetTextColor(1, 1, 1)
 text2:SetTextHeight(12)
 text2:Hide()
+
+local text3 = bar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+text3:SetPoint("TOP", bar, "BOTTOM", 0, -30)
+text3:SetTextColor(1, 1, 1)
+text3:SetTextHeight(12)
+text3:Hide()
+
+-- One more line beyond text2, in the direction the text grows (down below the
+-- bar, up above it). Anchored to text2's slot rather than to text2 itself, so it
+-- keeps its place while text2 is hidden.
+local TEXT_LINE_STEP = 14
+
+local function positionText3()
+  local point, relativeTo, relativePoint, x, y = text2:GetPoint(1)
+  if not point then return end
+  local step = point:find("^TOP") and -TEXT_LINE_STEP or TEXT_LINE_STEP
+  text3:ClearAllPoints()
+  text3:SetPoint(point, relativeTo, relativePoint, x, y + step)
+  text3:SetJustifyH(text2:GetJustifyH())
+end
 
 local function HideBlizzStatusBar()
   MainStatusTrackingBarContainer:Hide()
@@ -55,7 +119,13 @@ local function GetTopOccupiedHeight()
   local depth = -yOffset + tfb.db:GetBarHeight()
 
   if text1:IsShown() then
-    local textDepth = depth + (text2:IsShown() and 16 or 2) + TEXT_LINE_HEIGHT
+    local lineOffset = 2
+    if text3:IsShown() then
+      lineOffset = 16 + TEXT_LINE_STEP
+    elseif text2:IsShown() then
+      lineOffset = 16
+    end
+    local textDepth = depth + lineOffset + TEXT_LINE_HEIGHT
     if not tfb.db:GetTextFollowsOffset() then
       -- Text keeps its original screen position while the bar moves
       textDepth = textDepth + yOffset
@@ -105,9 +175,10 @@ local function updateText(fontString, text)
   end
 end
 
-function tfb.WunderBar:SetText(str1, str2)
+function tfb.WunderBar:SetText(str1, str2, str3)
   updateText(text1, str1)
   updateText(text2, str2)
+  updateText(text3, str3)
   ShiftTopCenterWidgets()
 end
 
@@ -128,7 +199,35 @@ function tfb.WunderBar:SetValues(max, value1, value2)
     bar:Hide()
     bar2:Hide()
   end
+  -- Every other display (playtime, progress gains) would otherwise keep the
+  -- quest segments of the XP bar; the XP bar sets them again after this.
+  questSegments = nil
+  questFrame:Hide()
   ShiftTopCenterWidgets()
+end
+
+-- Draws the quest XP segments: readyXP right after the current XP, openXP after
+-- that. Call after SetValues, which clears them.
+function tfb.WunderBar:SetQuestValues(max, xp, readyXP, openXP)
+  if not max or max <= 0 or (readyXP <= 0 and openXP <= 0) then
+    questSegments = nil
+    questFrame:Hide()
+    return
+  end
+
+  local function fraction(value)
+    return math.max(0, math.min(1, value / max))
+  end
+
+  questSegments = {
+    xp = fraction(xp),
+    ready = fraction(xp + readyXP),
+    open = fraction(xp + readyXP + openXP),
+  }
+  questReady:SetColorTexture(tfb.colors:GetQuestReadyColor())
+  questOpen:SetColorTexture(tfb.colors:GetQuestOpenColor())
+  layoutQuestSegments()
+  questFrame:Show()
 end
 
 function tfb.WunderBar:SetBar1Color(r, g, b)
@@ -175,6 +274,7 @@ local function positionText(textPos, alignment)
       text2:SetPoint("TOP" .. anchorH, bar, "BOTTOM" .. barAnchorH, xOff, -16)
     end
   end
+  positionText3()
 end
 
 function tfb.WunderBar:Reposition()
@@ -240,6 +340,8 @@ function tfb.WunderBar:Reposition()
     ShiftTopCenterWidgets()
     return
   end
+
+  positionText3()
 
   -- Disable movable for presets 1-3
   bar:SetMovable(false)

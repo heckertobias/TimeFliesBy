@@ -194,6 +194,7 @@ local function checkPlayerReachedMaxLvl()
     tfb.events:Unregister("PLAYER_XP_UPDATE", "updateXP")
     tfb.events:Unregister("PLAYER_LEVEL_UP", "updateXP")
     tfb.events:Unregister("UPDATE_EXHAUSTION", "updateXP")
+    tfb.events:Unregister("QUEST_LOG_UPDATE", "updateXP")
 
     WunderBar:HideBlizzStatusBar()
     initMaxLvlBar()
@@ -240,7 +241,48 @@ updateXP = function()
       restedText = string.format(" +%d%%", restedPerc)
     end
   end
-  WunderBar:SetText(string.format("%d / %d (%d%%)%s", xp, max, perc, restedText), timeTilNextLvlStr)
+
+  local mainText = string.format("%d / %d (%d%%)%s", xp, max, perc, restedText)
+
+  -- The quest line takes the second line and pushes "Next Level in" to the
+  -- third. It keeps that slot even while there is nothing to show, so the lines
+  -- below do not jump around.
+  if tfb.db:GetShowQuestXP() then
+    local readyXP, openXP = tfb.quest:GetQuestXP()
+    -- A group that is turned off is left out of both the bar and the text.
+    local showReady, showOpen = tfb.db:GetShowQuestXPReady(), tfb.db:GetShowQuestXPOpen()
+    if not showReady then readyXP = 0 end
+    if not showOpen then openXP = 0 end
+    local display = tfb.db:GetQuestXPDisplay()
+    if display ~= "text" then
+      WunderBar:SetQuestValues(max, xp, readyXP, openXP)
+    end
+    if display ~= "bar" then
+      local questText
+      if (readyXP > 0 or openXP > 0) and max > 0 then
+        local parts = {}
+        if showReady then
+          table.insert(parts, string.format("+%d (%d%%)", readyXP, floor((readyXP / max) * 100)))
+        end
+        if showOpen then
+          table.insert(parts, string.format("+%d (%d%%)", openXP, floor((openXP / max) * 100)))
+        end
+        -- "||" renders as a single "|"; a lone pipe starts an escape sequence.
+        questText = "Quests: " .. table.concat(parts, " || ")
+      end
+      WunderBar:SetText(mainText, questText, timeTilNextLvlStr)
+      return
+    end
+  end
+
+  WunderBar:SetText(mainText, timeTilNextLvlStr)
+end
+
+-- Redraws the XP bar after a setting change; no-op outside the XP bar.
+function tfb.RefreshXPBar()
+  if barMode == "xp" and not isProgressVisible() then
+    updateXP()
+  end
 end
 
 local function initExpBar()
@@ -252,6 +294,7 @@ local function initExpBar()
   tfb.events:Register("PLAYER_XP_UPDATE", "updateXP", updateXP)
   tfb.events:Register("PLAYER_LEVEL_UP", "updateXP", updateXP)
   tfb.events:Register("UPDATE_EXHAUSTION", "updateXP", updateXP)
+  tfb.events:Register("QUEST_LOG_UPDATE", "updateXP", updateXP)
 end
 
 local function initWunderBar()

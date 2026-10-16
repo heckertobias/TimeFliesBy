@@ -56,7 +56,8 @@
     "WOW_PROJECT_ID",
     "LibStub",
     "C_SkillInfo",
-    "SKILL_RANK_UP"
+    "SKILL_RANK_UP",
+    "GetQuestLogRewardXP"
   ],
   "editor.wordWrap": "off",
   "Lua.type.weakUnionCheck": true
