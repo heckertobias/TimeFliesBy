@@ -315,6 +315,7 @@ end
 
 local function init()
   tfb.db:Migrate()
+  tfb.db:AdoptLegacyRecords(tfb.character:GetCharKey(), tfb.character:GetLegacyKeyPrefix())
 
   if tfb.gameVersion:HasModernFactionSystems() then
     tfb.events:Register("UPDATE_FACTION", "paragonList", function()
@@ -359,6 +360,9 @@ local function writeTime(_, ...)
   local totalTimePlayed, timePlayedAtLevel = ...
   local expansionLevel = tfb.gameVersion:GetCurrentExpansionLevel()
   local charKey = tfb.character:GetCharKey()
+  if not charKey then
+    return
+  end
 
   tfb.db:WriteTime(charKey, expansionLevel, totalTimePlayed, timePlayedAtLevel)
   C_Timer.After(0.1, function()

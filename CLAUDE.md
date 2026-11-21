@@ -26,8 +26,8 @@ All modules share a single addon namespace table `tfb` (the second vararg from `
 
 **Module overview:**
 - `utils/events.lua` — `tfb.events`: Named event multiplexer wrapping WoW's frame event system. Use `tfb.events:Register(event, name, callback)` / `:Unregister(event, name)` instead of registering directly on frames. (`ParagonList.lua` registers on its own container frame instead; it owns that frame's lifecycle.)
-- `utils/db.lua` — `tfb.db`: All reads/writes to `TimeFliesByDB` (the SavedVariables table). Contains DB migration logic. Current schema version: 2. Per-character data is keyed by `"Name-Realm"`.
-- `utils/character.lua` — `tfb.character`: Player identity helpers (char key, class token, max level check).
+- `utils/db.lua` — `tfb.db`: All reads/writes to `TimeFliesByDB` (the SavedVariables table). Contains DB migration logic. Current schema version: 2. Per-character data is keyed by `"Name-Realm"`, or `"Name Surname"` under regional names (see Game versions).
+- `utils/character.lua` — `tfb.character`: Player identity helpers (char key, class token, max level check). `GetCharKey()` returns `nil` while the surname is unknown; callers that write must bail out.
 - `utils/colors.lua` — `tfb.colors`: Class, XP/rested, faction, renown and friendship bar colors.
 - `utils/gameVersion.lua` — `tfb.gameVersion`: Maps expansion levels (integers from `GetExpansionLevel()`) to names. Legacy version-string-based lookup exists only for DB migration.
 - `utils/chat.lua` — `tfb.chat`: Chat output and playtime formatting.
@@ -66,6 +66,7 @@ Consequences for the code:
 - The usual "am I on modern WoW" test `select(4, GetBuildInfo()) >= 100000` is **false** on Forever. `tfb.gameVersion:IsForever()` is the check — interface number below 100000 *and* project ID 18.
 - Retail-only *APIs* all exist on Forever; they just never return data. So renown, journey tracks, paragon and housing are gated by feature (`tfb.gameVersion:HasModernFactionSystems()`, `:HasHousing()`), not nil-guarded. Those gates also keep the Housing and Journey checkboxes out of `BarContent.lua` and make `ParagonList.lua` bail out before it builds any frame or settings subcategory.
 - Registering an event the client does not know **throws**. `tfb.events:Register()` wraps `RegisterEvent` in `pcall` and drops the callback when it fails, so a retail-only event costs nothing on Forever.
+- Forever 1.60.1 replaced realms with regionally unique names (`RegionalUniqueNamesEnabled()`, absent on retail). `UnitName("player")` then returns the surname where retail returns the realm, and `GetRealmName()` returns `""`. The char key becomes `"Name Surname"`; records stored before the switch (`"Name-<realm>"`, and `"Name-"` from 1.5.0 running after it) are folded in on that character's login by `tfb.db:AdoptLegacyRecords()` — earliest `createdAt`, latest `lastUpdate`. Records carry no class or race, so a first name that matches records on two realms is left alone. Never build a key from an empty realm.
 - Forever has no expansions, so playtime is bucketed per content patch: `tfb.gameVersion:GetCurrentExpansionLevel()` returns the interface number with the build digits cut off (`16001 -> 16000`) instead of an expansion level. That key can never collide with the expansion levels 0-11, and `GetExpansionNameByLevel()` renders it as `Forever Patch 1.60`. SavedVariables are per client anyway, so the two never share a DB.
 
 ## Conventions

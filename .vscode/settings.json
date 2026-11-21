@@ -57,7 +57,9 @@
     "LibStub",
     "C_SkillInfo",
     "SKILL_RANK_UP",
-    "GetQuestLogRewardXP"
+    "GetQuestLogRewardXP",
+    "RegionalUniqueNamesEnabled",
+    "Constants"
   ],
   "editor.wordWrap": "off",
   "Lua.type.weakUnionCheck": true

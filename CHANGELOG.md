@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.5.1] - 2026-11-21
+- Forever: fix characters being counted twice after Forever switched from realms to surnames. Characters are now stored as "Name Surname", and the old "Name-Realm" record is merged into it on the character's next login
+- Forever: fix "Time played in Forever Patch 1.60" only counting the time since that switch
+- retail is unchanged
+
 ## [1.5.0] - 2026-10-16
 - add quest XP to the XP bar: shows how much XP the quests in your log will give once turned in, split into quests ready to turn in and quests still in progress
 - the bar shows them as two golden segments starting at your current XP, behind the rested XP segment

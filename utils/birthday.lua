@@ -30,6 +30,9 @@ local function evaluate(played)
   end
 
   local charKey = tfb.character:GetCharKey()
+  if not charKey then
+    return
+  end
   local days = floor(played / DAY)
   local celebrated = tfb.db:GetLastCelebratedDay(charKey)
 

@@ -81,6 +81,76 @@ function tfb.db:Migrate()
   runMigrations()
 end
 
+-- Folds the same character's records into one: each expansion runs from the
+-- earliest createdAt to the latest lastUpdate. The record a version after the
+-- realm switch created for "Name-" started at that login, so its createdAt is
+-- too late and must not win.
+local function mergeCharData(into, from)
+  if from.initialPlayedTime and (not into.initialPlayedTime or from.initialPlayedTime < into.initialPlayedTime) then
+    into.initialPlayedTime = from.initialPlayedTime
+  end
+
+  for level, data in pairs(from.expansions or {}) do
+    local mine = into.expansions[level]
+    if not mine then
+      into.expansions[level] = { createdAt = data.createdAt, lastUpdate = data.lastUpdate }
+    else
+      mine.createdAt = math.min(mine.createdAt, data.createdAt)
+      mine.lastUpdate = math.max(mine.lastUpdate, data.lastUpdate)
+    end
+  end
+
+  local fromCurrent = from.expansions and from.expansions[from.currentExpansionLevel]
+  local intoCurrent = into.expansions[into.currentExpansionLevel]
+  if fromCurrent and (not intoCurrent or fromCurrent.lastUpdate > intoCurrent.lastUpdate) then
+    into.currentExpansionLevel = from.currentExpansionLevel
+  end
+
+  if from.lastCelebratedDay and (not into.lastCelebratedDay or from.lastCelebratedDay > into.lastCelebratedDay) then
+    into.lastCelebratedDay = from.lastCelebratedDay
+  end
+end
+
+-- WoW Forever switched from realms to surnames. Records stored before that sit
+-- under "Name-<realm>" or "Name-" and belong to the character now keyed
+-- "Name Surname". The records carry no class or race, so the first name is all
+-- there is to match on: when it matches records from two different realms, those
+-- are different characters and nothing is merged.
+function tfb.db:AdoptLegacyRecords(charKey, prefix)
+  local data = TimeFliesByDB["data"]
+  if not data or not charKey or not prefix then return end
+
+  local candidates, realms = {}, 0
+  for key in pairs(data) do
+    if key ~= charKey and key:sub(1, #prefix) == prefix then
+      table.insert(candidates, key)
+      if #key > #prefix then
+        realms = realms + 1
+      end
+    end
+  end
+
+  if #candidates == 0 or realms > 1 then
+    return
+  end
+
+  local merged = data[charKey]
+  for _, key in ipairs(candidates) do
+    local record = data[key]
+    if not merged then
+      merged = {
+        initialPlayedTime = record.initialPlayedTime,
+        currentExpansionLevel = record.currentExpansionLevel,
+        lastCelebratedDay = record.lastCelebratedDay,
+        expansions = {},
+      }
+    end
+    mergeCharData(merged, record)
+    data[key] = nil
+  end
+  data[charKey] = merged
+end
+
 function tfb.db:WriteTime(charKey, expansionLevel, playedTime, timePlayedAtLevel)
   -- Set before the initCharKey branch: GetCurrentPlayed extrapolates from this
   -- timestamp, so leaving it unset on a brand new character freezes the reported
