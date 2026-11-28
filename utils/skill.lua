@@ -46,8 +46,49 @@ local WEAPON_SKILLS_CATEGORY_ID = 6
 -- when its header has been collapsed since.
 local skillIDs = {}
 
+-- skillID -> last known rank, for spotting a skill-up without reading the chat
+-- message (see tfb.skill:GetSkillChange()).
+local ranks = {}
+
+local function isReadable(value)
+  return not (issecretvalue and issecretvalue(value))
+end
+
+local function rememberRank(info)
+  if isReadable(info.rank) then
+    ranks[info.skillID] = info.rank
+  end
+end
+
+-- Calls fn(info) for every non-header skill line: the visible ones first, then
+-- the cached ones hidden under a collapsed header. fn returning true stops.
+local function forEachSkillLine(fn)
+  local seen = {}
+  for i = 1, C_SkillInfo.GetNumSkillLines() do
+    local info = C_SkillInfo.GetSkillLineInfo(i)
+    -- Child lines (parentSkillLineID ~= 0) duplicate their profession.
+    if info and not info.isHeader and info.parentSkillLineID == 0 then
+      skillIDs[info.name] = info.skillID
+      seen[info.skillID] = true
+      if fn(info) then return end
+    end
+  end
+
+  if not C_SkillInfo.GetSkillLineInfoByID then return end
+  for _, skillID in pairs(skillIDs) do
+    if not seen[skillID] then
+      local info = C_SkillInfo.GetSkillLineInfoByID(skillID)
+      if info and fn(info) then return end
+    end
+  end
+end
+
+local function hasSkillInfo()
+  return C_SkillInfo and C_SkillInfo.GetNumSkillLines and true or false
+end
+
 local function findSkillLine(skillName)
-  if not C_SkillInfo or not C_SkillInfo.GetNumSkillLines then
+  if not hasSkillInfo() then
     return nil
   end
 
@@ -59,27 +100,65 @@ local function findSkillLine(skillName)
     end
   end
 
-  for i = 1, C_SkillInfo.GetNumSkillLines() do
-    local info = C_SkillInfo.GetSkillLineInfo(i)
-    -- Child lines (parentSkillLineID ~= 0) duplicate their profession.
-    if info and not info.isHeader and info.parentSkillLineID == 0 then
-      skillIDs[info.name] = info.skillID
-      if info.name == skillName then
-        return info
-      end
+  local found
+  forEachSkillLine(function(info)
+    if info.name == skillName then
+      found = info
+      return true
     end
-  end
-
-  return nil
+  end)
+  return found
 end
 
--- Primes the name -> ID cache while the skill window is still fully expanded.
+local function fromSkillLine(info, current)
+  local isWeaponSkill = info.skillLineCategoryID == WEAPON_SKILLS_CATEGORY_ID
+  return {
+    name = info.name,
+    current = current,
+    max = info.maxRank,
+    isWeaponSkill = isWeaponSkill,
+    GetColor = function()
+      if isWeaponSkill then
+        return tfb.colors:GetWeaponSkillColor()
+      end
+      return tfb.colors:GetProfessionColor()
+    end,
+  }
+end
+
+-- Primes the name -> ID and rank caches while the skill window is still fully
+-- expanded.
 function tfb.skill:Init()
-  findSkillLine(nil)
+  if not hasSkillInfo() then return end
+  forEachSkillLine(rememberRank)
+end
+
+-- Returns the skill whose rank rose since it was last seen, or nil. Skills not
+-- seen before are only recorded.
+function tfb.skill:GetSkillChange()
+  if not hasSkillInfo() then return nil end
+
+  local change
+  forEachSkillLine(function(info)
+    if not isReadable(info.rank) then return end
+    local previous = ranks[info.skillID]
+    ranks[info.skillID] = info.rank
+    if not change and previous and info.rank > previous
+        and isReadable(info.maxRank) and info.maxRank and info.maxRank > 0 then
+      change = fromSkillLine(info, info.rank)
+    end
+  end)
+  return change
 end
 
 -- Returns { name, current, max, isWeaponSkill, GetColor } or nil.
 function tfb.skill:ParseSkillMsg(message)
+  -- Chat payloads are secret values while restrictions apply (e.g. in combat);
+  -- any string operation on them throws and taints the call chain.
+  if not isReadable(message) then
+    return self:GetSkillChange()
+  end
+
   local skillUp = ERR_SKILL_UP_SI or SKILL_RANK_UP
   if not skillUp then return nil end
 
@@ -93,19 +172,8 @@ function tfb.skill:ParseSkillMsg(message)
 
   local skillLine = findSkillLine(professionName)
   if skillLine and skillLine.maxRank and skillLine.maxRank > 0 then
-    local isWeaponSkill = skillLine.skillLineCategoryID == WEAPON_SKILLS_CATEGORY_ID
-    return {
-      name = professionName,
-      current = skillLevel,
-      max = skillLine.maxRank,
-      isWeaponSkill = isWeaponSkill,
-      GetColor = function()
-        if isWeaponSkill then
-          return tfb.colors:GetWeaponSkillColor()
-        end
-        return tfb.colors:GetProfessionColor()
-      end,
-    }
+    ranks[skillLine.skillID] = skillLevel
+    return fromSkillLine(skillLine, skillLevel)
   end
 
   local maxSkillLevel = nil

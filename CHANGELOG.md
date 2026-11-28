@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.5.2] - 2026-11-28
+- Forever: fix a Lua error ("attempt to perform string conversion on a secret string value") on skill-ups in combat; the game hides the skill-up chat message there, so the addon now reads the new rank from the skill window instead
+- weapon skill-ups in combat show up on the bar again
+- retail is unchanged
+
 ## [1.5.1] - 2026-11-21
 - Forever: fix characters being counted twice after Forever switched from realms to surnames. Characters are now stored as "Name Surname", and the old "Name-Realm" record is merged into it on the character's next login
 - Forever: fix "Time played in Forever Patch 1.60" only counting the time since that switch

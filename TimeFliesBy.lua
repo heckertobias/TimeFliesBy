@@ -28,9 +28,16 @@ local function getProgressChange(event, ...)
     return tfb.reputation:GetReputationChange()
   end
 
-  if event == "CHAT_MSG_SKILL" then
-    local message = ...
-    local skill = tfb.skill:ParseSkillMsg(message)
+  if event == "CHAT_MSG_SKILL" or event == "SKILL_LINES_CHANGED" then
+    local skill
+    if event == "CHAT_MSG_SKILL" then
+      skill = tfb.skill:ParseSkillMsg((...))
+    else
+      -- Covers skill-ups whose chat message was secret but arrived before the
+      -- rank changed. The chat path updates the rank cache, so a skill-up it
+      -- already reported is not found again here.
+      skill = tfb.skill:GetSkillChange()
+    end
     if not skill then
       return nil
     end
@@ -118,6 +125,9 @@ local function initProgressTracking()
   tfb.skill:Init()
   tfb.events:Register("UPDATE_FACTION", "progressGain", onProgressGain)
   tfb.events:Register("CHAT_MSG_SKILL", "progressGain", onProgressGain)
+  if C_SkillInfo then
+    tfb.events:Register("SKILL_LINES_CHANGED", "progressGain", onProgressGain)
+  end
   if tfb.gameVersion:HasModernFactionSystems() then
     tfb.events:Register("MAJOR_FACTION_RENOWN_LEVEL_CHANGED", "progressGain", onProgressGain)
   end
